@@ -35,6 +35,7 @@ Contextualizes macro liquidity across the global wealth pyramid (Real Estate ~$6
 Computes unified global_capital_flow_score and capital flight signals across TradFi and Web3 assets.
 
 🏛️ Ecosystem Architecture
+
                        ┌─────────────────────────────────────────┐
                        │  World Money Map Orchestrator Agent     │
                        │     (Ver 4.1.0 / @prime-money-oracle)   │
@@ -48,6 +49,7 @@ Computes unified global_capital_flow_score and capital flight signals across Tra
 └──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘
 🛠️ Data Query & Commerce Flow Example
 1. Payment Quote Request (WorldMoneyMapQueryRequest)
+
 ```   
    {
   "scope": "FULL_MAP"
