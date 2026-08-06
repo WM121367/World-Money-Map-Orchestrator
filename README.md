@@ -78,7 +78,7 @@ pip install uagents requests
 ```
 python world_money_map_agent.py
 
-```
+
 💬 Message Protocols & Data Models
 
 Query Request Schema (WorldMoneyMapQueryRequest)
@@ -86,7 +86,6 @@ Query Request Schema (WorldMoneyMapQueryRequest)
 {
   "scope": "FULL_MAP"
 }
-
 ```
 Response Schema (WorldMoneyMapQueryResponse)
 ```
