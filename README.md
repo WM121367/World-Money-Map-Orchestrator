@@ -1,18 +1,26 @@
-🌐 World Money Map Orchestrator Agent (@prime-money-oracle)
-Institutional-Grade Global Capital Flow, Macro Stock Pyramid & Multi-Agent Intelligence Engine
+# 🌐 World Money Map Orchestrator Agent (`@prime-money-oracle`)
 
-📌 Overview
-World Money Map Orchestrator Agent is an autonomous AI agent built on the Fetch.ai uAgents framework. It serves as a master orchestrator that synthesizes macro-financial data feeds, global asset stock pyramids, and real-time intelligence from three specialized sub-agents:
+> **Institutional-Grade Global Capital Flow, Macro Stock Pyramid & Multi-Agent Intelligence Engine**
 
-13-Chain Unified Ledger Agent: Monitors multi-chain events, Farside BTC ETF flows, and institutional RSS feeds.
+[![Version](https://img.shields.io/badge/Version-3.0.0-blue.svg)](https://github.com/your-org/world-money-map-agent)
+[![Framework](https://img.shields.io/badge/Framework-Fetch.ai%20uAgents-orange.svg)](https://fetch.ai/)
+[![Protocol](https://img.shields.io/badge/Protocol-X402%20Agentic%20Payments-green.svg)](https://x402.org)
 
-AI-Chain & DePIN Infrastructure Agent: Tracks Web3 compute arbitrage (TAO/RENDER), data center power grid loads (PJM Virginia), and mega-capital deployments.
+## 📌 Overview
 
-Metal & Tokenized Commodity Agent: Evaluates central bank gold reserves, COMEX registered vault drawdowns, and US Debt Clock inflation pressures.
+**World Money Map Orchestrator Agent** is an autonomous AI agent built on the Fetch.ai `uAgents` framework. It serves as a master orchestrator that synthesizes macro-financial data feeds, global asset stock pyramids, and real-time intelligence from three specialized sub-agents:
 
-By unifying static Asset Stock Pools (Real Estate, Bonds, Fiat M2, Crypto) with dynamic Capital Flows (Bridge activity, ETF inflows, X402 micro-settlements), the Orchestrator outputs actionable cross-asset anomaly signals and real-time capital flight diagnostics.
+1. **13-Chain Unified Ledger Agent**: Monitors multi-chain events, Farside BTC ETF flows, and institutional RSS feeds.
+2. **AI-Chain & DePIN Infrastructure Agent**: Tracks Web3 compute arbitrage (TAO/RENDER), data center power grid loads (PJM Virginia), and mega-capital deployments.
+3. **Metal & Tokenized Commodity Agent**: Evaluates central bank gold reserves, COMEX registered vault drawdowns, and US Debt Clock inflation pressures.
 
-🏗️ Architecture System Diagram
+By unifying static **Asset Stock Pools** (Real Estate, Bonds, Fiat M2, Crypto) with dynamic **Capital Flows** (Bridge activity, ETF inflows, X402 micro-settlements), the Orchestrator outputs actionable cross-asset anomaly signals and real-time capital flight diagnostics.
+
+---
+
+## 🏗️ Architecture System Diagram
+
+```text
                               [ Human App UI / 3D Globe Dashboard ]
                                                │
                                  (HTTP / WebSocket / X402)
@@ -30,6 +38,7 @@ By unifying static Asset Stock Pools (Real Estate, Bonds, Fiat M2, Crypto) with 
   │ • 13 RPCs / RSS Feeds │       │ • TAO / RENDER        │       │ • PAXG / XAUT         │
   │ • BTC ETF Flow        │       │ • Grid Proxies / SWF  │       │ • COMEX / Central Bank│
   └───────────────────────┘       └───────────────────────┘       └───────────────────────┘
+```
 🚀 Key Features
 Cross-Asset Capital Flight Detection: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
 
@@ -41,9 +50,9 @@ Autonomous Micro-Payments (X402 Ready): Integrates native FET/USDC payment reque
 
 ⚙️ Environment Variables Setup
 Create a .env file in the root directory:
-
+```
 AGENT_SEED="your_custom_secure_seed_here"
-DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your_webhook_id/your_webhook_token"
+DISCORD_WEBHOOK_URL="[https://discord.com/api/webhooks/your_webhook_id/your_webhook_token](https://discord.com/api/webhooks/your_webhook_id/your_webhook_token)"
 
 # Sub-Agent uAgent Addresses
 TARGET_13CHAIN_AGENT_ADDR="agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2"
