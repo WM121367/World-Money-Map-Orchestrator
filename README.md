@@ -49,7 +49,6 @@ Automated Sub-Agent Orchestration: Queries and verifies intelligence payloads fr
 
 Autonomous Micro-Payments (X402 Ready): Integrates native FET/USDC payment requests and transactional delivery verification.
 
-##
 ⚙️ Environment Variables Setup
 Create a .env file in the root directory:
 ```
@@ -77,12 +76,15 @@ python world_money_map_agent.py
 💬 Message Protocols & Data Models
 Query Request Schema (WorldMoneyMapQueryRequest)
 ```
+
 {
   "scope": "FULL_MAP" // Options: "FULL_MAP", "SUMMARY", "ALERTS"
 }
+
 ```
 Response Schema (WorldMoneyMapQueryResponse)
 ```
+
 {
   "agent_version": "3.0.0",
   "timestamp": 1722880000.0,
