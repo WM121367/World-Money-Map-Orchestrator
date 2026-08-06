@@ -99,11 +99,8 @@ Response Schema (WorldMoneyMapQueryResponse)
     "confidence_score": 0.92
   }
 }
-```
-
----
 
 ## ⚖️ Disclaimer
 
 *NOT FINANCIAL ADVICE. This software is generated automatically for informational, research, and analytical purposes only. It does not constitute investment, legal, or tax advice.*
-```
+
