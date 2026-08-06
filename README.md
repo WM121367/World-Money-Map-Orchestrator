@@ -39,6 +39,7 @@ By unifying static **Asset Stock Pools** (Real Estate, Bonds, Fiat M2, Crypto) w
   │ • BTC ETF Flow        │       │ • Grid Proxies / SWF  │       │ • COMEX / Central Bank│
   └───────────────────────┘       └───────────────────────┘       └───────────────────────┘
 ```
+##
 🚀 Key Features
 Cross-Asset Capital Flight Detection: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
 
@@ -48,6 +49,7 @@ Automated Sub-Agent Orchestration: Queries and verifies intelligence payloads fr
 
 Autonomous Micro-Payments (X402 Ready): Integrates native FET/USDC payment requests and transactional delivery verification.
 
+##
 ⚙️ Environment Variables Setup
 Create a .env file in the root directory:
 ```
@@ -97,7 +99,7 @@ Response Schema (WorldMoneyMapQueryResponse)
     "confidence_score": 0.92
   }
 }
-```[cite: 1, 3, 4, 5]
+```
 
 ---
 
