@@ -38,17 +38,19 @@ By unifying static **Asset Stock Pools** (Real Estate, Bonds, Fiat M2, Crypto) w
   │ • 13 RPCs / RSS Feeds │       │ • TAO / RENDER        │       │ • PAXG / XAUT         │
   │ • BTC ETF Flow        │       │ • Grid Proxies / SWF  │       │ • COMEX / Central Bank│
   └───────────────────────┘       └───────────────────────┘       └───────────────────────┘
-
-## 🚀 Key Features
-
-* **Cross-Asset Capital Flight Detection**: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
-* **Global Asset Pyramid Integration**: Benchmarks macro events against global asset pools ($670T Real Estate, $300T Debt, $120T M2, $2.16T Crypto) to calculate asymmetric market multipliers.
-* **Automated Sub-Agent Orchestration**: Queries and verifies intelligence payloads from connected domain-specific agents.
-* **Autonomous Micro-Payments (X402 Ready)**: Integrates native FET/USDC payment requests and transactional delivery verification.
 ```
-## ⚙️ Environment Variables Setup
+🚀 Key Features
+Cross-Asset Capital Flight Detection: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
 
-Create a `.env` file in the root directory:
+Global Asset Pyramid Integration: Benchmarks macro events against global asset pools ($670T Real Estate, $300T Debt, $120T M2, $2.16T Crypto) to calculate asymmetric market multipliers.
+
+Automated Sub-Agent Orchestration: Queries and verifies intelligence payloads from connected domain-specific agents.
+
+Autonomous Micro-Payments (X402 Ready): Integrates native FET/USDC payment requests and transactional delivery verification.
+
+⚙️ Environment Variables Setup
+Create a .env file in the root directory:
+```
 
 AGENT_SEED="your_custom_secure_seed_here"
 DISCORD_WEBHOOK_URL="[https://discord.com/api/webhooks/your_webhook_id/your_webhook_token](https://discord.com/api/webhooks/your_webhook_id/your_webhook_token)"
@@ -57,10 +59,12 @@ DISCORD_WEBHOOK_URL="[https://discord.com/api/webhooks/your_webhook_id/your_webh
 TARGET_13CHAIN_AGENT_ADDR="agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2"
 TARGET_AI_DEPIN_AGENT_ADDR="agent1q0dn5syks2wwdf83jjdqnfjxvf394qh43df0jux8hcw6t67ac7uqq9k03xf"
 TARGET_METAL_AGENT_ADDR="agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpvehkdlq2gl8rp"
+
 ```
 📦 Installation & Local Execution
 1. Prerequisites
 Python 3.10 or higher
+
 Pip package manager
 
 2. Install Dependencies
@@ -70,17 +74,18 @@ pip install uagents requests
 3. Run the Orchestrator
 ```
 python world_money_map_agent.py
-```
-## 💬 Message Protocols & Data Models
 
-### Query Request Schema (`WorldMoneyMapQueryRequest`)
+```
+💬 Message Protocols & Data Models
+Query Request Schema (WorldMoneyMapQueryRequest)
 ```
 {
   "scope": "FULL_MAP"
 }
-
+```
 Response Schema (WorldMoneyMapQueryResponse)
 ```
+
 {
   "agent_version": "3.0.0",
   "timestamp": 1722880000.0,
@@ -97,8 +102,8 @@ Response Schema (WorldMoneyMapQueryResponse)
     "confidence_score": 0.92
   }
 }
+
 ```
-## ⚖️ Disclaimer
-
-*NOT FINANCIAL ADVICE. This software is generated automatically for informational, research, and analytical purposes only. It does not constitute investment, legal, or tax advice.*
-
+⚖️ Disclaimer
+NOT FINANCIAL ADVICE. This software is generated automatically for informational, research, and analytical purposes only. It does not constitute investment, legal, or tax advice.
+```
