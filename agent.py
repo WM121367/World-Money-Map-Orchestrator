@@ -227,7 +227,6 @@ async def startup_handler(ctx: Context):
     ctx.logger.info(f"🌐 World Money Map Orchestrator Agent (Ver {CURRENT_VERSION})")
     ctx.logger.info(f"📍 Address: {agent.address}")
     ctx.logger.info("==================================================")
-    await query_sub_agents_task(ctx)
-
+   
 if __name__ == "__main__":
     agent.run()
