@@ -1,11 +1,7 @@
 # ==================================================
 # 🌐 World Money Map Orchestrator Agent (Ver 3.0.0)
+# Handle Suggestion: @prime-money-oracle
 # ==================================================
-# このAgentは各子Agent (13-Chain, AI/DePIN, Metal) からデータを受信・照合し、
-# アセットクラスを跨ぐ資金移動 (TradFi -> Crypto -> Gold/RWA) や
-# マクロストックデータとの統合推論を行うオーケストレーターです。
-# ==================================================
-
 import asyncio
 import os
 import re
@@ -17,7 +13,7 @@ from uagents import Agent, Context, Model, Protocol
 
 CURRENT_VERSION = "3.0.0"
 
-# 環境変数からAgent Seedと子Agentのアドレスを取得
+# 環境変数からAgent Seedを取得
 AGENT_SEED = os.getenv("AGENT_SEED", "world_money_map_orchestrator_seed_12345")
 agent = Agent(
     name="world_money_map_orchestrator",
@@ -27,11 +23,20 @@ agent = Agent(
 )
 
 # --------------------------------------------------
-# 🌐 子Agentのアドレス設定 (環境変数またはデフォルト値)
+# 🌐 接続先・子Agentのアドレス設定 (提供されたアドレスを挿入)
 # --------------------------------------------------
-TARGET_13CHAIN_AGENT_ADDR = os.getenv("TARGET_13CHAIN_AGENT_ADDR", "agent1q_13chain_dummy_address")
-TARGET_AI_DEPIN_AGENT_ADDR = os.getenv("TARGET_AI_DEPIN_AGENT_ADDR", "agent1q_ai_depin_dummy_address")
-TARGET_METAL_AGENT_ADDR = os.getenv("TARGET_METAL_AGENT_ADDR", "agent1q_metal_dummy_address")
+TARGET_13CHAIN_AGENT_ADDR = os.getenv(
+    "TARGET_13CHAIN_AGENT_ADDR", 
+    "agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2"  # 👈 13Chain-RWA-Intell-Agent@prime-rwa-oracle
+)
+TARGET_AI_DEPIN_AGENT_ADDR = os.getenv(
+    "TARGET_AI_DEPIN_AGENT_ADDR", 
+    "agent1q0dn5syks2wwdf83jjdqnfjxvf394qh43df0jux8hcw6t67ac7uqq9k03xf"  # 👈 Ai-Chain-Intell-Agent@prime-ai-oracle
+)
+TARGET_METAL_AGENT_ADDR = os.getenv(
+    "TARGET_METAL_AGENT_ADDR", 
+    "agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpvehkdlq2gl8rp"  # 👈 Metal-Commodity-Intell-Agent@prime-metal-oracle
+)
 
 # --------------------------------------------------
 # 📊 データ構造定義 (Protocols & Models)
@@ -177,16 +182,16 @@ def calculate_capital_flow_intelligence() -> tuple[float, dict]:
 async def query_sub_agents_task(ctx: Context):
     ctx.logger.info("📡 [Orchestrator] 3つの子Agentへ同期リクエストを送信中...")
     
-    # 子Agent 1: 13-Chain Agentへ問い合わせ
-    if TARGET_13CHAIN_AGENT_ADDR and not TARGET_13CHAIN_AGENT_ADDR.endswith("dummy_address"):
+    # 子Agent 1: 13-Chain Agent (@prime-rwa-oracle) へ問い合わせ
+    if TARGET_13CHAIN_AGENT_ADDR:
         await ctx.send(TARGET_13CHAIN_AGENT_ADDR, DataQueryRequest(chain_name="full_intelligence"))
         
-    # 子Agent 2: AI & DePIN Agentへ問い合わせ
-    if TARGET_AI_DEPIN_AGENT_ADDR and not TARGET_AI_DEPIN_AGENT_ADDR.endswith("dummy_address"):
+    # 子Agent 2: AI & DePIN Agent (@prime-ai-oracle) へ問い合わせ
+    if TARGET_AI_DEPIN_AGENT_ADDR:
         await ctx.send(TARGET_AI_DEPIN_AGENT_ADDR, AIDataQueryRequest(category="ALL"))
 
-    # 子Agent 3: Metal Agentへ問い合わせ
-    if TARGET_METAL_AGENT_ADDR and not TARGET_METAL_AGENT_ADDR.endswith("dummy_address"):
+    # 子Agent 3: Metal Agent (@prime-metal-oracle) へ問い合わせ
+    if TARGET_METAL_AGENT_ADDR:
         await ctx.send(TARGET_METAL_AGENT_ADDR, MetalDataQueryRequest(symbol="ALL"))
 
 # 📥 各子Agentからのレスポンス受領ハンドラー
