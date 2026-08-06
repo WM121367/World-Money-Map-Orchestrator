@@ -73,7 +73,7 @@ Pip package manager
 pip install uagents requests
 ```
 3. Run the Orchestrator
-4. ```
+```
 python world_money_map_agent.py
 ```
 💬 Message Protocols & Data Models
