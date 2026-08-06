@@ -38,20 +38,18 @@ By unifying static **Asset Stock Pools** (Real Estate, Bonds, Fiat M2, Crypto) w
   │ • 13 RPCs / RSS Feeds │       │ • TAO / RENDER        │       │ • PAXG / XAUT         │
   │ • BTC ETF Flow        │       │ • Grid Proxies / SWF  │       │ • COMEX / Central Bank│
   └───────────────────────┘       └───────────────────────┘       └───────────────────────┘
+
+## 🚀 Key Features
+
+* **Cross-Asset Capital Flight Detection**: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
+* **Global Asset Pyramid Integration**: Benchmarks macro events against global asset pools ($670T Real Estate, $300T Debt, $120T M2, $2.16T Crypto) to calculate asymmetric market multipliers.
+* **Automated Sub-Agent Orchestration**: Queries and verifies intelligence payloads from connected domain-specific agents.
+* **Autonomous Micro-Payments (X402 Ready)**: Integrates native FET/USDC payment requests and transactional delivery verification.
 ```
-##
-🚀 Key Features
-Cross-Asset Capital Flight Detection: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
+## ⚙️ Environment Variables Setup
 
-Global Asset Pyramid Integration: Benchmarks macro events against global asset pools ($670T Real Estate, $300T Debt, $120T M2, $2.16T Crypto) to calculate asymmetric market multipliers.
+Create a `.env` file in the root directory:
 
-Automated Sub-Agent Orchestration: Queries and verifies intelligence payloads from connected domain-specific agents.
-
-Autonomous Micro-Payments (X402 Ready): Integrates native FET/USDC payment requests and transactional delivery verification.
-
-⚙️ Environment Variables Setup
-Create a .env file in the root directory:
-```
 AGENT_SEED="your_custom_secure_seed_here"
 DISCORD_WEBHOOK_URL="[https://discord.com/api/webhooks/your_webhook_id/your_webhook_token](https://discord.com/api/webhooks/your_webhook_id/your_webhook_token)"
 
@@ -73,8 +71,9 @@ pip install uagents requests
 ```
 python world_money_map_agent.py
 ```
-💬 Message Protocols & Data Models
-Query Request Schema (WorldMoneyMapQueryRequest)
+## 💬 Message Protocols & Data Models
+
+### Query Request Schema (`WorldMoneyMapQueryRequest`)
 ```
 {
   "scope": "FULL_MAP"
@@ -106,5 +105,5 @@ Response Schema (WorldMoneyMapQueryResponse)
 
 ## ⚖️ Disclaimer
 
-*NOT FINANCIAL ADVICE. This software is generated automatically for informational, research, and analytical purposes only. It does not constitute investment, legal, or tax advice.*[cite: 1]
+*NOT FINANCIAL ADVICE. This software is generated automatically for informational, research, and analytical purposes only. It does not constitute investment, legal, or tax advice.*
 ```
