@@ -58,7 +58,7 @@ DISCORD_WEBHOOK_URL="[https://discord.com/api/webhooks/your_webhook_id/your_webh
 TARGET_13CHAIN_AGENT_ADDR="agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2"
 TARGET_AI_DEPIN_AGENT_ADDR="agent1q0dn5syks2wwdf83jjdqnfjxvf394qh43df0jux8hcw6t67ac7uqq9k03xf"
 TARGET_METAL_AGENT_ADDR="agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpvehkdlq2gl8rp"
-
+```
 📦 Installation & Local Execution
 1. Prerequisites
 Python 3.10 or higher
