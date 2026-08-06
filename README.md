@@ -51,7 +51,8 @@ Computes unified global_capital_flow_score and capital flight signals across Tra
 🛠️ Data Query & Commerce Flow Example
 1. Payment Quote Request (WorldMoneyMapQueryRequest)
 
-```   
+```
+```
    {
   "scope": "FULL_MAP"
 }
