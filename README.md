@@ -41,6 +41,7 @@ By unifying static **Asset Stock Pools** (Real Estate, Bonds, Fiat M2, Crypto) w
 ```
 ```
 🚀 Key Features
+
 Cross-Asset Capital Flight Detection: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
 
 Global Asset Pyramid Integration: Benchmarks macro events against global asset pools ($670T Real Estate, $300T Debt, $120T M2, $2.16T Crypto) to calculate asymmetric market multipliers.
@@ -50,6 +51,7 @@ Automated Sub-Agent Orchestration: Queries and verifies intelligence payloads fr
 Autonomous Micro-Payments (X402 Ready): Integrates native FET/USDC payment requests and transactional delivery verification.
 
 ⚙️ Environment Variables Setup
+
 Create a .env file in the root directory:
 ```
 
@@ -78,6 +80,7 @@ python world_money_map_agent.py
 
 ```
 💬 Message Protocols & Data Models
+
 Query Request Schema (WorldMoneyMapQueryRequest)
 
 {
