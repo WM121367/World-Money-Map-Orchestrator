@@ -62,7 +62,6 @@ TARGET_METAL_AGENT_ADDR="agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpveh
 📦 Installation & Local Execution
 1. Prerequisites
 Python 3.10 or higher
-
 Pip package manager
 
 2. Install Dependencies
