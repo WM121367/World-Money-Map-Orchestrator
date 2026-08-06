@@ -1,7 +1,11 @@
 # ==================================================
-# 🌐 World Money Map Orchestrator Agent (Ver 3.0.0)
-# Handle Suggestion: @prime-money-oracle
+# 🌐 World Money Map Orchestrator Agent (Ver 3.0.0 - Final Release)
 # ==================================================
+# このAgentは各子Agent (13-Chain, AI/DePIN, Metal) からデータを受信・照合し、
+# アセットクラスを跨ぐ資金移動 (TradFi -> Crypto -> Gold/RWA) や
+# マクロストックデータとの統合推論を行うオーケストレーターです。
+# ==================================================
+
 import asyncio
 import os
 import re
@@ -13,29 +17,34 @@ from uagents import Agent, Context, Model, Protocol
 
 CURRENT_VERSION = "3.0.0"
 
-# 環境変数からAgent Seedを取得
-AGENT_SEED = os.getenv("AGENT_SEED", "world_money_map_orchestrator_seed_12345")
+# --------------------------------------------------
+# 🔑 安全なシード取得（Secret未設定時はエラーで起動停止）
+# --------------------------------------------------
+AGENT_SEED = os.getenv("AGENT_SEED")
+if not AGENT_SEED:
+    raise ValueError("エラー: 環境変数 'AGENT_SEED' が設定されていません。Agentverse の Secrets をご確認ください。")
+
+# Agentの定義（オーケストレーター自身のアドレス: agent1qtwj5nd6kwyqyqu3lwc5qw9knv636vzlwy2tejnt2krfmz4ckx55x5qrke8）
 agent = Agent(
     name="world_money_map_orchestrator",
-    seed=AGENT_SEED,
     port=8000,
     endpoint=["http://127.0.0.1:8000/submit"]
 )
 
 # --------------------------------------------------
-# 🌐 接続先・子Agentのアドレス設定 (提供されたアドレスを挿入)
+# 🌐 子Agentの実アドレス設定 (デフォルト値に本番アドレスをセット)
 # --------------------------------------------------
 TARGET_13CHAIN_AGENT_ADDR = os.getenv(
     "TARGET_13CHAIN_AGENT_ADDR", 
-    "agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2"  # 👈 13Chain-RWA-Intell-Agent@prime-rwa-oracle
+    "agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2"
 )
 TARGET_AI_DEPIN_AGENT_ADDR = os.getenv(
     "TARGET_AI_DEPIN_AGENT_ADDR", 
-    "agent1q0dn5syks2wwdf83jjdqnfjxvf394qh43df0jux8hcw6t67ac7uqq9k03xf"  # 👈 Ai-Chain-Intell-Agent@prime-ai-oracle
+    "agent1q0dn5syks2wwdf83jjdqnfjxvf394qh43df0jux8hcw6t67ac7uqq9k03xf"
 )
 TARGET_METAL_AGENT_ADDR = os.getenv(
     "TARGET_METAL_AGENT_ADDR", 
-    "agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpvehkdlq2gl8rp"  # 👈 Metal-Commodity-Intell-Agent@prime-metal-oracle
+    "agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpvehkdlq2gl8rp"
 )
 
 # --------------------------------------------------
@@ -162,7 +171,6 @@ def calculate_capital_flow_intelligence() -> tuple[float, dict]:
     """子Agentのデータを統合し、資金動向スコアとマクロ流出入アラートを生成"""
     score = 0.88  # ベース信頼性スコア
     
-    # 統合アラートデータ構造
     capital_flight_signal = {
         "flight_detected": True,
         "source_asset": "TradFi Equities & US Debt ($39.9T)",
@@ -183,15 +191,15 @@ async def query_sub_agents_task(ctx: Context):
     ctx.logger.info("📡 [Orchestrator] 3つの子Agentへ同期リクエストを送信中...")
     
     # 子Agent 1: 13-Chain Agent (@prime-rwa-oracle) へ問い合わせ
-    if TARGET_13CHAIN_AGENT_ADDR:
+    if TARGET_13CHAIN_AGENT_ADDR and not TARGET_13CHAIN_AGENT_ADDR.endswith("dummy_address"):
         await ctx.send(TARGET_13CHAIN_AGENT_ADDR, DataQueryRequest(chain_name="full_intelligence"))
         
     # 子Agent 2: AI & DePIN Agent (@prime-ai-oracle) へ問い合わせ
-    if TARGET_AI_DEPIN_AGENT_ADDR:
+    if TARGET_AI_DEPIN_AGENT_ADDR and not TARGET_AI_DEPIN_AGENT_ADDR.endswith("dummy_address"):
         await ctx.send(TARGET_AI_DEPIN_AGENT_ADDR, AIDataQueryRequest(category="ALL"))
 
     # 子Agent 3: Metal Agent (@prime-metal-oracle) へ問い合わせ
-    if TARGET_METAL_AGENT_ADDR:
+    if TARGET_METAL_AGENT_ADDR and not TARGET_METAL_AGENT_ADDR.endswith("dummy_address"):
         await ctx.send(TARGET_METAL_AGENT_ADDR, MetalDataQueryRequest(symbol="ALL"))
 
 # 📥 各子Agentからのレスポンス受領ハンドラー
@@ -242,7 +250,6 @@ async def handle_map_query_quote(ctx: Context, sender: str, msg: WorldMoneyMapQu
 async def handle_map_delivery(ctx: Context, sender: str, msg: CommitPayment):
     ctx.logger.info(f"💳 [{sender}] から着金通知を受信 (TxHash: {msg.transaction_id})")
     
-    # トランザクション簡易検証
     if msg.transaction_id and len(msg.transaction_id) >= 10:
         score, flight_signal = calculate_capital_flow_intelligence()
         
