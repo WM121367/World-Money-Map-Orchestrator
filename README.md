@@ -1,4 +1,4 @@
-# 🌐 World Money Map Orchestrator Agent (`@prime-money-oracle`)
+# 🌐 World Money Map Orchestrator (`@prime-ｍoney-oracle`)
 
 > **Institutional-Grade Global Capital Flow, Macro Stock Pyramid & Multi-Agent Intelligence Engine**
 
