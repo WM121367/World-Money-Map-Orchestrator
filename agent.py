@@ -312,6 +312,6 @@ async def startup_handler(ctx: Context):
     ctx.logger.info("🔐 Security Status: Agent Seed loaded securely (Hidden from logs)")
     ctx.logger.info("🏷️ Handle Suggestion: @prime-money-oracle")
     ctx.logger.info("==================================================")
-
-if __name__ == "__main__":
-    agent.run()
+    
+    # 🚀 起動直後に初回の子Agentデータ収集を実行
+    await query_sub_agents_task(ctx)
