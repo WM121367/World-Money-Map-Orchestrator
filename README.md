@@ -39,8 +39,8 @@ By unifying static **Asset Stock Pools** (Real Estate, Bonds, Fiat M2, Crypto) w
   │ • BTC ETF Flow        │       │ • Grid Proxies / SWF  │       │ • COMEX / Central Bank│
   └───────────────────────┘       └───────────────────────┘       └───────────────────────┘
 ```
-```
-🚀 Key Features
+
+##🚀 Key Features
 
 Cross-Asset Capital Flight Detection: Detects structural money shifts across TradFi equities, tokenized gold, and digital assets before public market reactions.
 
