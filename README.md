@@ -79,10 +79,8 @@ python world_money_map_agent.py
   "scope": "FULL_MAP"
 }
 
-```
 Response Schema (WorldMoneyMapQueryResponse)
 ```
-
 {
   "agent_version": "3.0.0",
   "timestamp": 1722880000.0,
@@ -99,7 +97,7 @@ Response Schema (WorldMoneyMapQueryResponse)
     "confidence_score": 0.92
   }
 }
-
+```
 ## ⚖️ Disclaimer
 
 *NOT FINANCIAL ADVICE. This software is generated automatically for informational, research, and analytical purposes only. It does not constitute investment, legal, or tax advice.*
