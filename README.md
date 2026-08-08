@@ -142,4 +142,3 @@ Network Communication: Communication between Orchestrator and Sub-Agents relies 
 ## ⚠️ Disclaimer
 
 NOT FINANCIAL ADVICE. All aggregated metrics, capital flow scores, flight signals, and economic models delivered by the World Money Map Orchestrator Agent are generated autonomously for technical demonstration, research, and data-analytics purposes only. Autonomous financial decisions or manual asset allocations should not be executed based solely on this data. Perform comprehensive independent research before interacting with digital asset markets or executing transactions based on autonomous agent outputs.
-```
