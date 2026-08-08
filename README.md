@@ -105,12 +105,11 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
   },
   "reasoning_summary": "Orchestrated 5-tier cross-asset synthesis completed."
 }
-```
 
 ## ⚙️ Environment Configuration
 
 Set the following environment variables in your local `.env` file or Agentverse Secrets:
-```
+
 
 * **`AGENT_SEED_PHRASE`** *(REQUIRED)*  
   Mnemonic seed phrase restoring the Orchestrator wallet.
@@ -129,7 +128,7 @@ Set the following environment variables in your local `.env` file or Agentverse 
 * **`TARGET_REAL_ESTATE_AGENT_ADDR`** *(Optional)*  
   Address of the Global Real Estate & RWA Sub-Agent.
 
-```
+
 ## 🔒 Security & Privacy Guidelines
 
 Key Management & Storage: Never commit .env files, wallet seed phrases, or private keys to public repositories. Ensure .gitignore explicitly includes .env* and all local state logs.
