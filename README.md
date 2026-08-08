@@ -3,7 +3,7 @@ An autonomous multi-AI agent system that monitors multiple financial markets and
 
 🏗️ System Architecture
 The central Orchestrator Agent communicates asynchronously with 5 specialized Sub-Agents via distributed messaging protocols to aggregate and evaluate market data across multiple domains.
-
+```
 +--------------------------+
                         |   Client / External AI   |
                         +------------+-------------+
@@ -20,3 +20,4 @@ The central Orchestrator Agent communicates asynchronously with 5 specialized Su
 |13Chain|     | AI & DePIN    |             | Metal Asset   |     | TradFi|     | Real Estate   |
 |SubAgent     | Sub-Agent     |             | Sub-Agent     |     |SubAgent     | Sub-Agent     |
 +-------+     +---------------+             +---------------+     +-------+     +---------------+
+```
