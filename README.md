@@ -53,3 +53,21 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 {
   "scope": "FULL_MAP"
 }
+
+```
+2. Quotation Delivery (RequestPayment)
+```
+{
+  "accepted_funds": [
+    {
+      "amount": "5.0",
+      "currency": "FET",
+      "payment_method": "fet_direct"
+    }
+  ],
+  "recipient": "agent1q...",
+  "deadline_seconds": 300,
+  "reference": "quote_wmm_FULL_MAP_1718900000",
+  "description": "Full World Money Map Intelligence"
+}
+
