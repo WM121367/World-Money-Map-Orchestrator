@@ -55,7 +55,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 }
 
 ```
-##2. Quotation Delivery (RequestPayment)
+## 2. Quotation Delivery (RequestPayment)
 ```
 {
   "accepted_funds": [
@@ -72,7 +72,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 }
 
 ```
-##3. Final Intelligence Delivery (WorldMoneyMapQueryResponse)
+## 3. Final Intelligence Delivery (WorldMoneyMapQueryResponse)
 ```
 
 {
@@ -107,7 +107,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 }
 ```
 
-##⚙️ Environment Configuration
+## ⚙️ Environment Configuration
 
 Set the following environment variables in your local `.env` file or Agentverse Secrets:
 ```
@@ -130,7 +130,7 @@ Set the following environment variables in your local `.env` file or Agentverse 
   Address of the Global Real Estate & RWA Sub-Agent.
 
 ```
-##🔒 Security & Privacy Guidelines
+## 🔒 Security & Privacy Guidelines
 
 Key Management & Storage: Never commit .env files, wallet seed phrases, or private keys to public repositories. Ensure .gitignore explicitly includes .env* and all local state logs.
 
@@ -140,7 +140,7 @@ Isolated Offline Execution: Key generation and local deployment should be execut
 
 Network Communication: Communication between Orchestrator and Sub-Agents relies on Fetch.ai uAgents protocol encryption. Do not expose unencrypted HTTP endpoints to public networks.
 
-##⚠️ Disclaimer
+## ⚠️ Disclaimer
 
 NOT FINANCIAL ADVICE. All aggregated metrics, capital flow scores, flight signals, and economic models delivered by the World Money Map Orchestrator Agent are generated autonomously for technical demonstration, research, and data-analytics purposes only. Autonomous financial decisions or manual asset allocations should not be executed based solely on this data. Perform comprehensive independent research before interacting with digital asset markets or executing transactions based on autonomous agent outputs.
 ```
