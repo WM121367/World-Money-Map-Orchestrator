@@ -43,3 +43,13 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 │  (Multi-Chain)   │ │ Agent        │ │ (Commodity) │ │ Agent        │ │ Estate Agent   │
 └──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘
 ```
+---
+
+## 🛠️ Data Query & Commerce Flow Example
+
+### 1. Payment Quote Request (`WorldMoneyMapQueryRequest`)
+
+```json
+{
+  "scope": "FULL_MAP"
+}
