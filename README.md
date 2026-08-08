@@ -106,6 +106,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
   "reasoning_summary": "Orchestrated 5-tier cross-asset synthesis completed."
 }
 ```
+
 ⚙️ Environment Configuration
 
 Set the following environment variables in your local `.env` file or Agentverse Secrets:
