@@ -30,3 +30,15 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 ---
 
 ## 🏛️ Ecosystem Architecture
+
+                   ┌─────────────────────────────────────────┐
+                   │  World Money Map Orchestrator Agent     │
+                   │     (Ver 4.1.0 / @prime-money-oracle)   │
+                   └────────────────────┬────────────────────┘
+                                        │
+     ┌──────────────────┬───────────────┼───────────────┬──────────────────┐
+     │                  │               │               │                  │
+┌────────▼─────────┐ ┌──────▼───────┐ ┌─────▼───────┐ ┌─────▼───────┐ ┌────────▼────────┐
+│  13-Chain Agent  │ │ AI & DePIN   │ │ Metal Agent │ │ Global Stock │ │ Global Real    │
+│  (Multi-Chain)   │ │ Agent        │ │ (Commodity) │ │ Agent        │ │ Estate Agent   │
+└──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘
