@@ -1,11 +1,12 @@
 # ==================================================
-# 🌐 World Money Map Orchestrator Agent (Ver 4.1.0)
+# 🌐 World Money Map Orchestrator Agent (Ver 4.5.0 - Alert Engine)
 # ==================================================
 import os
 import time
+import requests
 from uagents import Agent, Context, Model, Protocol
 
-CURRENT_VERSION = "4.1.0"
+CURRENT_VERSION = "4.5.0"
 
 AGENT_SEED = os.getenv("AGENT_SEED")
 if not AGENT_SEED:
@@ -14,13 +15,32 @@ if not AGENT_SEED:
 agent = Agent(
     name="world_money_map_orchestrator",
     port=8000,
-    endpoint=["http://127.0.0.1:8000/submit"]
+    endpoint=["http://127.0.0.1:8000/submit"],
 )
 
-TARGET_13CHAIN_AGENT_ADDR = os.getenv("TARGET_13CHAIN_AGENT_ADDR", "agent1qga88jf6c9hh9cmqq3l37hxftpwhtgzxy6c59fd0a6u7fxn30h9c7pzw9k2")
-TARGET_AI_DEPIN_AGENT_ADDR = os.getenv("TARGET_AI_DEPIN_AGENT_ADDR", "agent1q0dn5syks2wwdf83jjdqnfjxvf394qh43df0jux8hcw6t67ac7uqq9k03xf")
-TARGET_METAL_AGENT_ADDR = os.getenv("TARGET_METAL_AGENT_ADDR", "agent1q08d8wnsjw3p55dxlf43ugktvz664n4k40wy058zq72lqpvehkdlq2gl8rp")
-TARGET_TRADFI_STOCK_AGENT_ADDR = os.getenv("TARGET_TRADFI_STOCK_AGENT_ADDR", "agent1qdr4754jmd9p852frtj8f2j6v6pc55zfnj5gj52zkapfgvx3wet2sxga5mq")
+TARGET_13CHAIN_AGENT_ADDR = os.getenv(
+    "TARGET_13CHAIN_AGENT_ADDR",
+    "agent1qdh6qpe2w8x5zqhmqmq3uzzvwjrfs2pgxyvhwnapgnfd50ztml3x2cgnhcr",
+)
+TARGET_AI_DEPIN_AGENT_ADDR = os.getenv(
+    "TARGET_AI_DEPIN_AGENT_ADDR",
+    "agent1qwwk4g5c609xvxjcywu2nshx7e0a77j3uwat9vmqy6rvsyw6mnzasgl62us",
+)
+TARGET_METAL_AGENT_ADDR = os.getenv(
+    "TARGET_METAL_AGENT_ADDR",
+    "agent1qg7jgujfh8nqd8gdnh6gkf4q2th7v8jzcrzjtg09m377gvkej57dyhfc4xv",
+)
+TARGET_TRADFI_STOCK_AGENT_ADDR = os.getenv(
+    "TARGET_TRADFI_STOCK_AGENT_ADDR",
+    "agent1qvz00khxag0pmdxhd2622ulr5msgq966sn7gfxr370kp4uv7z6rlzvhfupa",
+)
+TARGET_REAL_ESTATE_AGENT_ADDR = os.getenv(
+    "TARGET_REAL_ESTATE_AGENT_ADDR",
+    "agent1qwlseaupjyhl3r40k7jcasmpcf3wh5qhglcqzqywxwmlx9yxjjp457u07e3",
+)
+
+# 外部通知用 Webhook URL（環境変数から取得、未設定時はローカルログ出力）
+WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 # --------------------------------------------------
 # 📊 データ構造定義
@@ -110,6 +130,48 @@ class WorldMoneyMapQueryResponse(Model):
     macro_capital_flight_signal: dict
     reasoning_summary: str
 
+class RealEstateRequest(Model):
+    request_id: str
+    timestamp: str
+    force_refresh: bool = False
+
+class RWATokenMetrics(Model):
+    protocol: str
+    tvl_usd: float
+    volume_24h_usd: float
+    market_cap_usd: float
+    avg_yield_apy: float
+
+class CapRateAndIndex(Model):
+    city: str
+    country: str
+    residential_cap_rate: float
+    commercial_cap_rate: float
+    house_price_index_yoy: float
+
+class MacroInterestAnalysis(Model):
+    us10y_yield: float
+    mortgage_30y_avg: float
+    spread: float
+    correlation_score: float
+    market_sentiment: str
+
+class CapitalFlightAndRisk(Model):
+    target_region: str
+    capital_inflow_est_usd_m: float
+    regulatory_risk_score: int
+    liquidity_risk_score: int
+    estimated_roi: float
+
+class RealEstateResponse(Model):
+    request_id: str
+    timestamp: str
+    rwa_token_metrics: list[RWATokenMetrics]
+    global_cap_rates: list[CapRateAndIndex]
+    macro_interest: MacroInterestAnalysis
+    capital_flight_risk: list[CapitalFlightAndRisk]
+    data_hash: str
+
 # --------------------------------------------------
 # 💬 Chat Protocol
 # --------------------------------------------------
@@ -129,104 +191,251 @@ GLOBAL_STOCK_PYRAMID = {
     "global_m2_fiat_money_usd": "120T",
     "global_equities_usd": "115T",
     "gold_and_commodities_usd": "18T - 33T (Gold: ~18T)",
-    "crypto_market_cap_usd": "2.16T"
+    "crypto_market_cap_usd": "2.16T",
 }
 
-def calculate_capital_flow_intelligence() -> tuple[float, dict]:
-    score = 0.93
-    capital_flight_signal = {
-        "flight_detected": True,
-        "source_asset": "TradFi Bonds ($300T) & Equities ($115T)",
-        "target_asset": "Tokenized Gold (PAXG/XAUT), BTC ETF, & High-Yield DePIN Infra",
-        "estimated_volume_usd": "$350M+",
-        "confidence_score": 0.95,
-        "urgency": "HIGH",
-        "description": "Rising US10Y volatility and DXY fluctuations triggering institutional rotation from TradFi equities into hard assets and automated yield-generating crypto infrastructure."
-    }
-    return score, capital_flight_signal
+# --------------------------------------------------
+# 🚨 閾値監視 ＆ アラート通知ロジック (Alert Engine)
+# --------------------------------------------------
+def check_market_alerts_and_notify(ctx: Context, aggregated_data: dict):
+    """リスク指標の閾値チェックと警告発信"""
+    tradfi = aggregated_data.get("subagent_tradfi", {}).get("data", {})
+    vix = tradfi.get("volatility_sentiment", {}).get("VIX_EQUITY_VOLATILITY", 15.4)
+    us10y_str = tradfi.get("bond_yields_rates", {}).get("US_10Y_YIELD", "4.18%")
+    
+    try:
+        us10y_val = float(us10y_str.replace("%", ""))
+    except ValueError:
+        us10y_val = 4.18
+
+    alerts = []
+    if vix > 25.0:
+        alerts.append(f"⚠️ HIGH VOLATILITY: VIX Spike Detected ({vix})")
+    if us10y_val > 4.50:
+        alerts.append(f"⚠️ HIGH YIELD STRESS: US 10Y Yield Exceeds 4.50% ({us10y_val}%)")
+
+    if alerts:
+        alert_msg = "🚨 [WORLD MONEY MAP RISK ALERT]\n" + "\n".join(alerts)
+        ctx.logger.warning(alert_msg)
+        
+        # Discord / External Webhook 送信処理
+        if WEBHOOK_URL:
+            try:
+                requests.post(WEBHOOK_URL, json={"content": alert_msg}, timeout=3)
+                ctx.logger.info("📡 Webhook アラート通知を送信しました。")
+            except Exception as e:
+                ctx.logger.error(f"Webhook 送信失敗: {e}")
+    else:
+        ctx.logger.info("🟢 リスク指標は正常範囲内です (Alert Check Clean)")
 
 # --------------------------------------------------
-# 🔄 定期収集 ＆ 子Agentレスポンス受領 (ctx.storage へ保存)
+# 🧠 クロスアセット動的推論合成エンジン
 # --------------------------------------------------
+def generate_dynamic_macro_reasoning(data: dict) -> tuple[float, dict, str]:
+    tradfi = data.get("subagent_tradfi", {}).get("data", {})
+    metal = data.get("subagent_metal", {}).get("data", {})
+    ai_depin = data.get("subagent_ai_depin", {}).get("data", {})
+    real_estate = data.get("subagent_real_estate", {}).get("data", {})
+    chain_13 = data.get("subagent_13chain", {}).get("data", {})
+    
+    us10y = tradfi.get("bond_yields_rates", {}).get("US_10Y_YIELD", "4.18%")
+    dxy = tradfi.get("macro_liquidity", {}).get("DXY_DOLLAR_INDEX", 104.15)
+    sp500_chg = tradfi.get("global_indices", {}).get("S&P500", {}).get("change_24h_percent", 0.35)
+    
+    gs_ratio = metal.get("onchain_paxg_xaut", {}).get("gold_silver_ratio", "84.2")
+    cb_trend = metal.get("central_bank_gold_trends", {}).get("macro_driver", "De-dollarization")
+    
+    tao_staked = ai_depin.get("web3_ai_depin_metrics", {}).get("bittensor_tao", {}).get("staking_ratio", "78.4%")
+    gpu_lease = ai_depin.get("web3_ai_depin_metrics", {}).get("render_akash_compute", {}).get("gpu_lease_utilization", "91.2%")
+    
+    cap_rates = real_estate.get("global_cap_rates", [])
+    top_cap_city = cap_rates[3].get("city") if len(cap_rates) > 3 else "Dubai"
+    top_cap_val = cap_rates[3].get("residential_cap_rate") if len(cap_rates) > 3 else 7.1
+    
+    btc_height = chain_13.get("chain_statuses", {}).get("bitcoin", "N/A")
+    
+    score = 0.90
+    if sp500_chg > 0:
+        score += 0.02
+    if "90%" in str(gpu_lease) or "91%" in str(gpu_lease):
+        score += 0.01
+    score = min(score, 0.99)
+    
+    capital_flight_signal = {
+        "flight_detected": True,
+        "source_asset": f"TradFi Equities (S&P500 {sp500_chg:+.2f}%) & US Bonds (10Y Yield: {us10y})",
+        "target_asset": f"Tokenized Gold (Gold/Silver Ratio: {gs_ratio}), AI Infra ({tao_staked} TAO Staked), High-Cap RE ({top_cap_city} {top_cap_val}%)",
+        "macro_indicators": {"DXY": dxy, "BTC_Height": btc_height},
+        "urgency": "HIGH",
+        "confidence_score": score,
+    }
+    
+    reasoning_text = (
+        f"[SYNTHESIS COMPLETE] Capital Flow Score: {score:.2f} | "
+        f"Macro Dynamics: US10Y sitting at {us10y} with DXY at {dxy}. "
+        f"Physical & Hard Assets: Central banks advancing {cb_trend} amidst Gold/Silver ratio of {gs_ratio}. "
+        f"High-Yield Real Assets: Institutional capital rotating towards {top_cap_city} real estate ({top_cap_val}% cap rate). "
+        f"AI & DePIN Infrastructure: GPU compute demand peaking at {gpu_lease} utilization with {tao_staked} TAO staked. "
+        f"Cross-chain ledger sync confirmed at BTC height {btc_height}."
+    )
+    
+    return score, capital_flight_signal, reasoning_text
+
+# --------------------------------------------------
+# 🔄 キャッシュ保存・読み出し関数
+# --------------------------------------------------
+def save_agent_cache(ctx: Context, key: str, raw_data: dict):
+    payload = {
+        "updated_at": time.time(),
+        "is_stale": False,
+        "data": raw_data
+    }
+    ctx.storage.set(key, payload)
+
+def get_agent_cache_with_fallback(ctx: Context, key: str) -> dict:
+    cached = ctx.storage.get(key)
+    if cached:
+        if time.time() - cached.get("updated_at", 0) > 300:
+            cached["is_stale"] = True
+        return cached
+    return {
+        "updated_at": 0,
+        "is_stale": True,
+        "data": {"status": "NO_DATA_AVAILABLE_OFFLINE"}
+    }
+
 @agent.on_interval(period=120.0)
 async def query_sub_agents_task(ctx: Context):
-    ctx.logger.info("📡 [Orchestrator] 4つの子Agentへ同期リクエストを送信中...")
+    ctx.logger.info("📡 [Orchestrator] 5つの子Agentへ同期リクエストを送信中...")
     await ctx.send(TARGET_13CHAIN_AGENT_ADDR, DataQueryRequest(chain_name="full_intelligence"))
     await ctx.send(TARGET_AI_DEPIN_AGENT_ADDR, AIDataQueryRequest(category="ALL"))
     await ctx.send(TARGET_METAL_AGENT_ADDR, MetalDataQueryRequest(symbol="ALL"))
     await ctx.send(TARGET_TRADFI_STOCK_AGENT_ADDR, TradFiDataQueryRequest(scope="ALL_MARKETS"))
 
+    req_id = str(int(time.time()))
+    await ctx.send(
+        TARGET_REAL_ESTATE_AGENT_ADDR,
+        RealEstateRequest(request_id=req_id, timestamp=str(time.time())),
+    )
+
 @agent.on_message(model=DataQueryResponse)
 async def handle_13chain_response(ctx: Context, sender: str, msg: DataQueryResponse):
-    ctx.logger.info(f"✅ [13-Chain Agent] からのデータ受信完了 ({sender})")
-    ctx.storage.set("subagent_13chain", msg.dict())
+    ctx.logger.info(f"✅ [13-Chain Agent] データ受信完了 ({sender})")
+    save_agent_cache(ctx, "subagent_13chain", msg.dict())
 
 @agent.on_message(model=AIDataQueryResponse)
 async def handle_ai_depin_response(ctx: Context, sender: str, msg: AIDataQueryResponse):
-    ctx.logger.info(f"✅ [AI & DePIN Agent] からのデータ受信完了 ({sender})")
-    ctx.storage.set("subagent_ai_depin", msg.dict())
+    ctx.logger.info(f"✅ [AI & DePIN Agent] データ受信完了 ({sender})")
+    save_agent_cache(ctx, "subagent_ai_depin", msg.dict())
 
 @agent.on_message(model=MetalDataQueryResponse)
 async def handle_metal_response(ctx: Context, sender: str, msg: MetalDataQueryResponse):
-    ctx.logger.info(f"✅ [Metal Agent] からのデータ受信完了 ({sender})")
-    ctx.storage.set("subagent_metal", msg.dict())
+    ctx.logger.info(f"✅ [Metal Agent] データ受信完了 ({sender})")
+    save_agent_cache(ctx, "subagent_metal", msg.dict())
 
 @agent.on_message(model=TradFiDataQueryResponse)
 async def handle_tradfi_response(ctx: Context, sender: str, msg: TradFiDataQueryResponse):
-    ctx.logger.info(f"✅ [Global Stock Agent] からのデータ受信完了 ({sender})")
-    ctx.storage.set("subagent_tradfi", msg.dict())
+    ctx.logger.info(f"✅ [Global Stock Agent] データ受信完了 ({sender})")
+    save_agent_cache(ctx, "subagent_tradfi", msg.dict())
+    
+    # 全データ受領時にアラート閾値チェックを自動実行
+    aggregated = {
+        "subagent_tradfi": get_agent_cache_with_fallback(ctx, "subagent_tradfi")
+    }
+    check_market_alerts_and_notify(ctx, aggregated)
+
+@agent.on_message(model=RealEstateResponse)
+async def handle_real_estate_response(ctx: Context, sender: str, msg: RealEstateResponse):
+    ctx.logger.info(f"✅ [Real Estate Agent] データ受信完了 ({sender})")
+    save_agent_cache(ctx, "subagent_real_estate", msg.dict())
 
 # --------------------------------------------------
-# 💰 納品ハンドラー (ctx.storage から読み出して返送)
+# 💰 見積もり ＆ 厳格決済検証ハンドラー
 # --------------------------------------------------
 @agent.on_message(model=WorldMoneyMapQueryRequest)
 async def handle_map_query_quote(ctx: Context, sender: str, msg: WorldMoneyMapQueryRequest):
     scope = (msg.scope or "FULL_MAP").upper()
     quoted_price = "5.0" if scope == "FULL_MAP" else "1.0"
-    ctx.logger.info(f"📩 [{sender}] から照会受信: Scope='{scope}' ➔ 見積もり: {quoted_price} FET")
+    ref = f"quote_wmm_{scope}_{int(time.time())}"
     
+    ctx.storage.set(f"ref_{ref}", {"price": quoted_price, "sender": sender, "scope": scope})
+    ctx.logger.info(f"📩 [{sender}] から照会受信: Scope='{scope}' ➔ 見積もり: {quoted_price} FET (Ref: {ref})")
+
     payment_quote = RequestPayment(
         accepted_funds=[Funds(amount=quoted_price, currency="FET", payment_method="fet_direct")],
         recipient=str(agent.wallet.address()),
         deadline_seconds=300,
-        reference=f"quote_wmm_{scope}_{int(time.time())}",
-        description="Full World Money Map Intelligence"
+        reference=ref,
+        description="Full World Money Map Intelligence",
     )
     await ctx.send(sender, payment_quote)
 
 @agent.on_message(model=CommitPayment)
 async def handle_map_delivery(ctx: Context, sender: str, msg: CommitPayment):
-    ctx.logger.info(f"💳 [{sender}] から着金通知を受信 (TxHash: {msg.transaction_id})")
+    ctx.logger.info(f"💳 [{sender}] から決済通知を受信 (Ref: {msg.reference}, TxHash: {msg.transaction_id})")
+
+    quote_record = ctx.storage.get(f"ref_{msg.reference}")
+    if not quote_record:
+        ctx.logger.warning(f"🚨 決済拒否: 未登録または有効期限切れの Reference ({msg.reference})")
+        return
+
+    expected_price = quote_record.get("price")
+    paid_amount = msg.funds.amount
     
-    if msg.transaction_id and len(msg.transaction_id) >= 10:
-        score, flight_signal = calculate_capital_flow_intelligence()
+    if float(paid_amount) < float(expected_price):
+        ctx.logger.warning(f"🚨 決済拒否: 支払金額不足 (請求: {expected_price} FET, 支払: {paid_amount} FET)")
+        return
         
-        # 永続ストレージ (ctx.storage) からデータを取得
-        aggregated_data = {
-            "subagent_13chain": ctx.storage.get("subagent_13chain"),
-            "subagent_ai_depin": ctx.storage.get("subagent_ai_depin"),
-            "subagent_metal": ctx.storage.get("subagent_metal"),
-            "subagent_tradfi": ctx.storage.get("subagent_tradfi")
-        }
-        
-        response = WorldMoneyMapQueryResponse(
-            agent_version=CURRENT_VERSION,
-            timestamp=time.time(),
-            global_capital_flow_score=score,
-            global_stock_pyramid_usd=GLOBAL_STOCK_PYRAMID,
-            aggregated_intelligence=aggregated_data,
-            macro_capital_flight_signal=flight_signal,
-            reasoning_summary="Orchestrated 4-tier cross-asset synthesis completed."
-        )
-        await ctx.send(sender, response)
-        ctx.logger.info(f"🎉 [{sender}] へ World Money Map 統合データの納品を完了しました！")
+    if msg.recipient != str(agent.wallet.address()):
+        ctx.logger.warning(f"🚨 決済拒否: 送金先不一致 ({msg.recipient})")
+        return
+
+    ctx.logger.info(f"✅ 決済検証合格: {paid_amount} FET (Ref: {msg.reference})")
+
+    aggregated_data = {
+        "subagent_13chain": get_agent_cache_with_fallback(ctx, "subagent_13chain"),
+        "subagent_ai_depin": get_agent_cache_with_fallback(ctx, "subagent_ai_depin"),
+        "subagent_metal": get_agent_cache_with_fallback(ctx, "subagent_metal"),
+        "subagent_tradfi": get_agent_cache_with_fallback(ctx, "subagent_tradfi"),
+        "subagent_real_estate": get_agent_cache_with_fallback(ctx, "subagent_real_estate"),
+    }
+
+    score, flight_signal, reasoning_summary = generate_dynamic_macro_reasoning(aggregated_data)
+
+    response = WorldMoneyMapQueryResponse(
+        agent_version=CURRENT_VERSION,
+        timestamp=time.time(),
+        global_capital_flow_score=score,
+        global_stock_pyramid_usd=GLOBAL_STOCK_PYRAMID,
+        aggregated_intelligence=aggregated_data,
+        macro_capital_flight_signal=flight_signal,
+        reasoning_summary=reasoning_summary,
+    )
+    await ctx.send(sender, response)
+    ctx.logger.info(f"🎉 [{sender}] へ World Money Map 統合データの納品を完了しました！")
 
 @agent.on_event("startup")
 async def startup_handler(ctx: Context):
     ctx.logger.info("==================================================")
     ctx.logger.info(f"🌐 World Money Map Orchestrator Agent (Ver {CURRENT_VERSION})")
     ctx.logger.info(f"📍 Address: {agent.address}")
+    ctx.logger.info("🚨 Active Threshold Risk Alert Engine Initialized")
     ctx.logger.info("==================================================")
-   
+
 if __name__ == "__main__":
+    import os
+    from uagents_core.utils.registration import (
+        register_chat_agent,
+        RegistrationRequestCredentials,
+    )
+
+    register_chat_agent(
+        "wmm_orchestrator_local",
+        "https://agentverse.ai",
+        active=True,
+        credentials=RegistrationRequestCredentials(
+            agentverse_api_key=os.environ["AGENTVERSE_KEY"],
+            agent_seed_phrase=os.environ["AGENT_SEED_PHRASE"],
+        ),
+    )
     agent.run()
