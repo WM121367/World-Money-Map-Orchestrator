@@ -30,33 +30,32 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 ---
 
 ## 🏛️ Ecosystem Architecture
-```
-                   ┌─────────────────────────────────────────┐
-                   │  World Money Map Orchestrator Agent     │
-                   │     (Ver 4.1.0 / @prime-money-oracle)   │
-                   └────────────────────┬────────────────────┘
-                                        │
-     ┌──────────────────┬───────────────┼───────────────┬──────────────────┐
-     │                  │               │               │                  │
+
+```text
+                       ┌─────────────────────────────────────────┐
+                       │  World Money Map Orchestrator Agent     │
+                       │     (Ver 4.1.0 / @prime-money-oracle)   │
+                       └────────────────────┬────────────────────┘
+                                            │
+         ┌──────────────────┬───────────────┼───────────────┬──────────────────┐
+         │                  │               │               │                  │
 ┌────────▼─────────┐ ┌──────▼───────┐ ┌─────▼───────┐ ┌─────▼───────┐ ┌────────▼────────┐
 │  13-Chain Agent  │ │ AI & DePIN   │ │ Metal Agent │ │ Global Stock │ │ Global Real    │
 │  (Multi-Chain)   │ │ Agent        │ │ (Commodity) │ │ Agent        │ │ Estate Agent   │
 └──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘
+
 ```
----
-
-## 🛠️ Data Query & Commerce Flow Example
-
-### 1. Payment Quote Request (`WorldMoneyMapQueryRequest`)
-
-```json
+🛠️ Data Query & Commerce Flow Example
+1. Payment Quote Request (WorldMoneyMapQueryRequest)
+```
 {
   "scope": "FULL_MAP"
 }
+
 ```
+2. Quotation Delivery (RequestPayment)
 ```
-## 2. Quotation Delivery (RequestPayment)
-```
+
 {
   "accepted_funds": [
     {
@@ -72,7 +71,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 }
 
 ```
-## 3. Final Intelligence Delivery (WorldMoneyMapQueryResponse)
+3. Final Intelligence Delivery (WorldMoneyMapQueryResponse)
 ```
 
 {
@@ -105,27 +104,21 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
   },
   "reasoning_summary": "Orchestrated 5-tier cross-asset synthesis completed."
 }
-
+```
 ## ⚙️ Environment Configuration
 
 Set the following environment variables in your local `.env` file or Agentverse Secrets:
 
-* **`AGENT_SEED_PHRASE`** *(REQUIRED)*  
-  Mnemonic seed phrase restoring the Orchestrator wallet.
-* **`AGENTVERSE_KEY`** *(REQUIRED)*  
-  API Key for Agentverse communication platform.
-* **`DISCORD_WEBHOOK_URL`** *(Optional)*  
-  Webhook URL for automated monitoring alerts.
-* **`TARGET_13CHAIN_AGENT_ADDR`** *(Optional)*  
-  Address of the 13-Chain Surveillance Sub-Agent.
-* **`TARGET_AI_DEPIN_AGENT_ADDR`** *(Optional)*  
-  Address of the AI & DePIN Intelligence Sub-Agent.
-* **`TARGET_METAL_AGENT_ADDR`** *(Optional)*  
-  Address of the Metal & Commodity Intelligence Sub-Agent.
-* **`TARGET_TRADFI_STOCK_AGENT_ADDR`** *(Optional)*  
-  Address of the Global Stock & TradFi Sub-Agent.
-* **`TARGET_REAL_ESTATE_AGENT_ADDR`** *(Optional)*  
-  Address of the Global Real Estate & RWA Sub-Agent.
+| Variable Name | Description | Requirement |
+| :--- | :--- | :--- |
+| `AGENT_SEED_PHRASE` | Mnemonic seed phrase restoring the Orchestrator wallet | **REQUIRED** |
+| `AGENTVERSE_KEY` | API Key for Agentverse communication platform | **REQUIRED** |
+| `DISCORD_WEBHOOK_URL` | Webhook URL for automated monitoring alerts | Optional |
+| `TARGET_13CHAIN_AGENT_ADDR` | Address of the 13-Chain Surveillance Sub-Agent | Optional |
+| `TARGET_AI_DEPIN_AGENT_ADDR` | Address of the AI & DePIN Intelligence Sub-Agent | Optional |
+| `TARGET_METAL_AGENT_ADDR` | Address of the Metal & Commodity Intelligence Sub-Agent | Optional |
+| `TARGET_TRADFI_STOCK_AGENT_ADDR` | Address of the Global Stock & TradFi Sub-Agent | Optional |
+| `TARGET_REAL_ESTATE_AGENT_ADDR` | Address of the Global Real Estate & RWA Sub-Agent | Optional |
 
 ## 🔒 Security & Privacy Guidelines
 
