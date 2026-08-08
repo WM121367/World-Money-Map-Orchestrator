@@ -60,6 +60,7 @@ chmod 600 ~/Documents/.env.*
 
 ```
 2. Continuous 24/7 Deployment via systemd
+
 All 6 agent services are managed by systemd to ensure continuous background operation and automatic recovery on system boot.
 
 Enable and Start All Services
