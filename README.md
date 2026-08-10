@@ -1,6 +1,6 @@
-# 🌐 World Money Map Orchestrator Agent (Cloud Ver 5.0.0 - Paper Trade Engin)
+# 🌐 World Money Map Orchestrator Agent (Cloud Ver 5.0.0-PaperTrade Engine)
 
-6-Tier Cross-Asset Intelligence Engine & Decentralized Autonomous Commerce Hub for Global Capital Flow Surveillance.
+6-Tier Cross-Asset Intelligence Engine, Autonomous Paper Trading Simulator & Decentralized Commerce Hub for Global Capital Flow Surveillance.
 
 World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordinating AI agent of the World Money Map architecture. It autonomously queries, aggregates, and synthesizes intelligence from 6 specialized sub-agents spanning multi-chain L1/L2 networks, AI & DePIN infrastructure, tokenized commodities, TradFi global equities, international real estate / RWA markets, and institutional vault solvency analytics.
 
@@ -15,6 +15,12 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
   * **Global Stock Agent:** TradFi indices, bond yields (US10Y), central bank rate trends, and sector rotation.
   * **Global Real Estate Agent:** RWA real estate tokens (Propy, RealT, Centrifuge), municipal Cap Rates, mortgage spreads, and capital flight risk matrix.
   * **Vaultic AI Agent:** Institutional physical/tokenized vault solvency, Coinbase API live asset audits, and systemic collateral risk analytics.
+
+* **📈 Automated Paper Trading Simulation Engine:**
+  * **Stateful Virtual Portfolio (`ctx.storage`):** Tracks virtual cash balance ($100,000 Initial USD), BTC holdings, average purchase price, and realized PnL.
+  * **Automated Trade Execution:** Triggers paper BUY orders when `confidence_score >= 0.92` and `flight_detected == True` using live spot prices from Coinbase API.
+  * **Risk Management & Exit Strategy:** Automatically executes paper SELL orders upon reaching +5% take-profit, -3% stop-loss, or elevated Vaultic Systemic Stress Index (`>0.60`).
+  * **Execution Alerts:** Dispatches real-time Discord Webhook notifications upon simulated trade execution.
 
 * **Autonomous Commerce & X402 Payment Settlement:**
   * Implements dynamic quote generation (`WorldMoneyMapQueryRequest` -> `RequestPayment`) and verifies payment commitments (`CommitPayment`) in native FET.
@@ -35,7 +41,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 ```text
                        ┌─────────────────────────────────────────┐
                        │  World Money Map Orchestrator Agent     │
-                       │     (Ver 4.6.0 / @prime-money-oracle)   │
+                       │     (Ver 5.0.0 / @prime-money-oracle)   │
                        └────────────────────┬────────────────────┘
                                             │
          ┌──────────────────┬───────────────┼───────────────┬──────────────────┬──────────────────┐
@@ -45,7 +51,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 │  (Multi-Chain)   │ │ Agent        │ │ (Commodity) │ │ Agent        │ │ Estate Agent   │ │  (@prime-trade)│
 └──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘ └────────────────┘
 ```
-🛠️ Data Query & Commerce Flow Example
+## 🛠️ Data Query & Commerce Flow Example
 1. Payment Quote Request (WorldMoneyMapQueryRequest)
 ```
 {
@@ -53,7 +59,7 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 }
 
 ```
-2. Quotation Delivery (RequestPayment)
+## 2. Quotation Delivery (RequestPayment)
 ```
 
 {
@@ -64,20 +70,20 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
       "payment_method": "fet_direct"
     }
   ],
-  "recipient": "agent1q...",
+  "recipient": "agent1qw4kctjjta3v66fyrphc462dqc4e8t688khwlp7rxz3s3q47kzy0jtyfuql",
   "deadline_seconds": 300,
   "reference": "quote_wmm_FULL_MAP_1718900000",
   "description": "Full World Money Map Intelligence"
 }
 
 ```
-3. Final Intelligence Delivery (WorldMoneyMapQueryResponse)
+## 3. Final Intelligence Delivery (WorldMoneyMapQueryResponse)
 ```
 
 {
-  "agent_version": "4.1.0",
+  "agent_version": "5.0.0-PaperTrade",
   "timestamp": 1718900050.0,
-  "global_capital_flow_score": 0.93,
+  "global_capital_flow_score": 0.94,
   "global_stock_pyramid_usd": {
     "real_estate_usd": "670T - 680T",
     "global_bond_debt_usd": "300T",
@@ -91,18 +97,25 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
     "subagent_ai_depin": { "status": "active" },
     "subagent_metal": { "status": "active" },
     "subagent_tradfi": { "status": "active" },
-    "subagent_real_estate": { "status": "active" }
+    "subagent_real_estate": { "status": "active" },
+    "subagent_vaultic_ai": {
+      "data": {
+        "coinbase_live_solvency": {
+          "status": "CONNECTED_SUCCESS",
+          "btc_usd_spot": 65116.61
+        },
+        "systemic_stress_index": 0.38
+      }
+    }
   },
   "macro_capital_flight_signal": {
     "flight_detected": true,
-    "source_asset": "TradFi Bonds ($300T) & Equities ($115T)",
-    "target_asset": "Tokenized Gold (PAXG/XAUT), BTC ETF, & High-Yield DePIN Infra",
-    "estimated_volume_usd": "$350M+",
-    "confidence_score": 0.95,
+    "source_asset": "TradFi Equities & US Bonds (10Y Yield: 4.66%)",
+    "target_asset": "Tokenized Gold, AI Infra, & High-Yield Real Estate",
     "urgency": "HIGH",
-    "description": "Rising US10Y volatility and DXY fluctuations triggering institutional rotation from TradFi equities into hard assets and automated yield-generating crypto infrastructure."
+    "confidence_score": 0.94
   },
-  "reasoning_summary": "Orchestrated 5-tier cross-asset synthesis completed."
+  "reasoning_summary": "Orchestrated 6-tier cross-asset synthesis completed."
 }
 ```
 
@@ -122,11 +135,14 @@ Set the following environment variables in your local `.env` file or Agentverse 
 
 ## 🔒 Security & Privacy Guidelines
 
-* **Key Management & Storage:** Never commit `.env` files, wallet seed phrases, or private keys to public repositories. Ensure `.gitignore` explicitly includes `.env*` and all local state logs.
-* **Access Control:** Restrict file permissions for configuration files using `chmod 600 ~/Documents/.env.*` to prevent unauthorized local reading.
-* **Isolated Offline Execution:** Key generation and local deployment should be executed in a secured local terminal environment.
-* **Network Communication:** Communication between Orchestrator and Sub-Agents relies on Fetch.ai `uAgents` protocol encryption. Do not expose unencrypted HTTP endpoints to public networks.
+Key Management & Storage: Never commit .env files, wallet seed phrases, or private keys to public repositories. Ensure .gitignore explicitly includes .env* and all local state logs.
+
+Access Control: Restrict file permissions for configuration files using chmod 600 ~/Documents/.env.* to prevent unauthorized local reading.
+
+Isolated Offline Execution: Key generation and local deployment should be executed in a secured local terminal environment.
+
+Network Communication: Communication between Orchestrator and Sub-Agents relies on Fetch.ai uAgents protocol encryption. Do not expose unencrypted HTTP endpoints to public networks.
 
 ## ⚠️ Disclaimer
 
-**NOT FINANCIAL ADVICE.** All aggregated metrics, capital flow scores, flight signals, and economic models delivered by the World Money Map Orchestrator Agent are generated autonomously for technical demonstration, research, and data-analytics purposes only. Autonomous financial decisions or manual asset allocations should not be executed based solely on this data. Perform comprehensive independent research before interacting with digital asset markets or executing transactions based on autonomous agent outputs.
+NOT FINANCIAL ADVICE. All aggregated metrics, capital flow scores, flight signals, simulated paper trade logs, and economic models delivered by the World Money Map Orchestrator Agent are generated autonomously for technical demonstration, research, and data-analytics purposes only. Autonomous financial decisions or manual asset allocations should not be executed based solely on this data. Perform comprehensive independent research before interacting with digital asset markets or executing transactions based on autonomous agent outputs.
