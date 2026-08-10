@@ -138,6 +138,7 @@ class VaulticDataQueryResponse(Model):
     timestamp: float
     institutional_vault_metrics: dict
     cross_asset_collateral_risk: dict
+    coinbase_live_solvency: dict  # 👈 ここを追加
     systemic_stress_index: float
     reasoning_summary: str
 
