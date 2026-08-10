@@ -1,15 +1,14 @@
 # ==================================================
-# 🌐 World Money Map Orchestrator Agent (Cloud Ver 4.5.0 - Alert Engine)
+# 🌐 World Money Map Orchestrator Agent (Cloud Ver 4.6.0 - 6-Tier Engine)
 # ==================================================
 import os
 import time
 import requests
 from uagents import Agent, Context, Model, Protocol
 
-CURRENT_VERSION = "4.5.0-cloud"
+CURRENT_VERSION = "4.6.0-cloud"
 
 # Secrets から各種設定を取得
-AGENT_SEED = os.getenv("AGENT_SEED")
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 TARGET_AI_DEPIN_AGENT_ADDR = os.getenv("AI_DEPIN_AGENT_ADDR")
@@ -17,7 +16,9 @@ TARGET_13CHAIN_AGENT_ADDR = os.getenv("CHAIN_13_AGENT_ADDR")
 TARGET_REAL_ESTATE_AGENT_ADDR = os.getenv("REAL_ESTATE_AGENT_ADDR")
 TARGET_TRADFI_STOCK_AGENT_ADDR = os.getenv("GLOBAL_STOCK_AGENT_ADDR")
 TARGET_METAL_AGENT_ADDR = os.getenv("METAL_AGENT_ADDR")
+TARGET_VAULTIC_AI_AGENT_ADDR = os.getenv("VAULTIC_AI_AGENT_ADDR")
 
+# Cloud Hosting 用 Agent 初期化（seedの記述を省略しログ出力を防止）
 agent = Agent(
     name="world-money-map-orchestrator"
 )
@@ -28,10 +29,11 @@ ALLOWED_CHILDREN = {
     TARGET_REAL_ESTATE_AGENT_ADDR,
     TARGET_TRADFI_STOCK_AGENT_ADDR,
     TARGET_METAL_AGENT_ADDR,
+    TARGET_VAULTIC_AI_AGENT_ADDR,
 }
 
 # --------------------------------------------------
-# 📊 データ構造定義
+# 📊 データ構造定義 (Sub-Agents Protocols)
 # --------------------------------------------------
 class DataQueryRequest(Model):
     chain_name: str
@@ -85,39 +87,6 @@ class TradFiDataQueryResponse(Model):
     earnings_macro_trends: dict
     reasoning_summary: str
 
-class ChatMessage(Model):
-    message: str
-
-class Funds(Model):
-    amount: str
-    currency: str = "FET"
-    payment_method: str = "fet_direct"
-
-class RequestPayment(Model):
-    accepted_funds: list[Funds]
-    recipient: str
-    deadline_seconds: int = 300
-    reference: str
-    description: str
-
-class CommitPayment(Model):
-    funds: Funds
-    recipient: str
-    transaction_id: str
-    reference: str
-
-class WorldMoneyMapQueryRequest(Model):
-    scope: str
-
-class WorldMoneyMapQueryResponse(Model):
-    agent_version: str
-    timestamp: float
-    global_capital_flow_score: float
-    global_stock_pyramid_usd: dict
-    aggregated_intelligence: dict
-    macro_capital_flight_signal: dict
-    reasoning_summary: str
-
 class RealEstateRequest(Model):
     request_id: str
     timestamp: str
@@ -160,9 +129,55 @@ class RealEstateResponse(Model):
     capital_flight_risk: list[CapitalFlightAndRisk]
     data_hash: str
 
+# --- Vaultic AI データ構造 ---
+class VaulticDataQueryRequest(Model):
+    category: str
+
+class VaulticDataQueryResponse(Model):
+    agent_version: str
+    timestamp: float
+    institutional_vault_metrics: dict
+    cross_asset_collateral_risk: dict
+    systemic_stress_index: float
+    reasoning_summary: str
+
 # --------------------------------------------------
+# 💰 商業決済 ＆ 照会プロトコル
+# --------------------------------------------------
+class ChatMessage(Model):
+    message: str
+
+class Funds(Model):
+    amount: str
+    currency: str = "FET"
+    payment_method: str = "fet_direct"
+
+class RequestPayment(Model):
+    accepted_funds: list[Funds]
+    recipient: str
+    deadline_seconds: int = 300
+    reference: str
+    description: str
+
+class CommitPayment(Model):
+    funds: Funds
+    recipient: str
+    transaction_id: str
+    reference: str
+
+class WorldMoneyMapQueryRequest(Model):
+    scope: str
+
+class WorldMoneyMapQueryResponse(Model):
+    agent_version: str
+    timestamp: float
+    global_capital_flow_score: float
+    global_stock_pyramid_usd: dict
+    aggregated_intelligence: dict
+    macro_capital_flight_signal: dict
+    reasoning_summary: str
+
 # 💬 Chat Protocol
-# --------------------------------------------------
 chat_proto = Protocol(name="Orchestrator Chat Protocol", version="0.4.0")
 
 @chat_proto.on_message(model=ChatMessage, replies=ChatMessage)
@@ -187,8 +202,11 @@ GLOBAL_STOCK_PYRAMID = {
 # --------------------------------------------------
 def check_market_alerts_and_notify(ctx: Context, aggregated_data: dict):
     tradfi = aggregated_data.get("subagent_tradfi", {}).get("data", {})
+    vaultic = aggregated_data.get("subagent_vaultic_ai", {}).get("data", {})
+    
     vix = tradfi.get("volatility_sentiment", {}).get("VIX_EQUITY_VOLATILITY", 15.4)
     us10y_str = tradfi.get("bond_yields_rates", {}).get("US_10Y_YIELD", "4.18%")
+    stress_index = vaultic.get("systemic_stress_index", 0.38)
     
     try:
         us10y_val = float(us10y_str.replace("%", ""))
@@ -200,6 +218,8 @@ def check_market_alerts_and_notify(ctx: Context, aggregated_data: dict):
         alerts.append(f"⚠️ HIGH VOLATILITY: VIX Spike Detected ({vix})")
     if us10y_val > 4.50:
         alerts.append(f"⚠️ HIGH YIELD STRESS: US 10Y Yield Exceeds 4.50% ({us10y_val}%)")
+    if stress_index > 0.70:
+        alerts.append(f"⚠️ VAULTIC SYSTEMIC STRESS: Index Critical ({stress_index})")
 
     if alerts:
         alert_msg = "🚨 [WORLD MONEY MAP RISK ALERT]\n" + "\n".join(alerts)
@@ -214,7 +234,7 @@ def check_market_alerts_and_notify(ctx: Context, aggregated_data: dict):
         ctx.logger.info("🟢 リスク指標は正常範囲内です (Alert Check Clean)")
 
 # --------------------------------------------------
-# 🧠 クロスアセット動的推論合成エンジン
+# 🧠 6-Tier クロスアセット動的推論合成エンジン
 # --------------------------------------------------
 def generate_dynamic_macro_reasoning(data: dict) -> tuple[float, dict, str]:
     tradfi = data.get("subagent_tradfi", {}).get("data", {})
@@ -222,6 +242,7 @@ def generate_dynamic_macro_reasoning(data: dict) -> tuple[float, dict, str]:
     ai_depin = data.get("subagent_ai_depin", {}).get("data", {})
     real_estate = data.get("subagent_real_estate", {}).get("data", {})
     chain_13 = data.get("subagent_13chain", {}).get("data", {})
+    vaultic = data.get("subagent_vaultic_ai", {}).get("data", {})
     
     us10y = tradfi.get("bond_yields_rates", {}).get("US_10Y_YIELD", "4.18%")
     dxy = tradfi.get("macro_liquidity", {}).get("DXY_DOLLAR_INDEX", 104.15)
@@ -238,19 +259,19 @@ def generate_dynamic_macro_reasoning(data: dict) -> tuple[float, dict, str]:
     top_cap_val = cap_rates[3].get("residential_cap_rate") if len(cap_rates) > 3 else 7.1
     
     btc_height = chain_13.get("chain_statuses", {}).get("bitcoin", "N/A")
+    vault_stress = vaultic.get("systemic_stress_index", 0.38)
     
     score = 0.90
-    if sp500_chg > 0:
-        score += 0.02
-    if "90%" in str(gpu_lease) or "91%" in str(gpu_lease):
-        score += 0.01
+    if sp500_chg > 0: score += 0.02
+    if "90%" in str(gpu_lease) or "91%" in str(gpu_lease): score += 0.01
+    if vault_stress < 0.50: score += 0.01
     score = min(score, 0.99)
     
     capital_flight_signal = {
         "flight_detected": True,
         "source_asset": f"TradFi Equities (S&P500 {sp500_chg:+.2f}%) & US Bonds (10Y Yield: {us10y})",
         "target_asset": f"Tokenized Gold (Gold/Silver Ratio: {gs_ratio}), AI Infra ({tao_staked} TAO Staked), High-Cap RE ({top_cap_city} {top_cap_val}%)",
-        "macro_indicators": {"DXY": dxy, "BTC_Height": btc_height},
+        "macro_indicators": {"DXY": dxy, "BTC_Height": btc_height, "Vaultic_Stress_Index": vault_stress},
         "urgency": "HIGH",
         "confidence_score": score,
     }
@@ -260,7 +281,8 @@ def generate_dynamic_macro_reasoning(data: dict) -> tuple[float, dict, str]:
         f"Macro Dynamics: US10Y sitting at {us10y} with DXY at {dxy}. "
         f"Physical & Hard Assets: Central banks advancing {cb_trend} amidst Gold/Silver ratio of {gs_ratio}. "
         f"High-Yield Real Assets: Institutional capital rotating towards {top_cap_city} real estate ({top_cap_val}% cap rate). "
-        f"AI & DePIN Infrastructure: GPU compute demand peaking at {gpu_lease} utilization with {tao_staked} TAO staked. "
+        f"AI & DePIN Infrastructure: GPU compute demand peaking at {gpu_lease} utilization. "
+        f"Vaultic AI Security: Systemic stress index stable at {vault_stress}. "
         f"Cross-chain ledger sync confirmed at BTC height {btc_height}."
     )
     
@@ -289,9 +311,12 @@ def get_agent_cache_with_fallback(ctx: Context, key: str) -> dict:
         "data": {"status": "NO_DATA_AVAILABLE_OFFLINE"}
     }
 
+# --------------------------------------------------
+# ⏱️ 定期同期タスク (全6子エージェントへ同期照会)
+# --------------------------------------------------
 @agent.on_interval(period=120.0)
 async def query_sub_agents_task(ctx: Context):
-    ctx.logger.info("📡 [Orchestrator] 5つの子Agentへ同期リクエストを送信中...")
+    ctx.logger.info("📡 [Orchestrator] 6つの子Agentへ同期リクエストを送信中...")
     if TARGET_13CHAIN_AGENT_ADDR:
         await ctx.send(TARGET_13CHAIN_AGENT_ADDR, DataQueryRequest(chain_name="full_intelligence"))
     if TARGET_AI_DEPIN_AGENT_ADDR:
@@ -300,6 +325,8 @@ async def query_sub_agents_task(ctx: Context):
         await ctx.send(TARGET_METAL_AGENT_ADDR, MetalDataQueryRequest(symbol="ALL"))
     if TARGET_TRADFI_STOCK_AGENT_ADDR:
         await ctx.send(TARGET_TRADFI_STOCK_AGENT_ADDR, TradFiDataQueryRequest(scope="ALL_MARKETS"))
+    if TARGET_VAULTIC_AI_AGENT_ADDR:
+        await ctx.send(TARGET_VAULTIC_AI_AGENT_ADDR, VaulticDataQueryRequest(category="ALL"))
 
     if TARGET_REAL_ESTATE_AGENT_ADDR:
         req_id = str(int(time.time()))
@@ -308,6 +335,9 @@ async def query_sub_agents_task(ctx: Context):
             RealEstateRequest(request_id=req_id, timestamp=str(time.time())),
         )
 
+# --------------------------------------------------
+# 📥 受信ハンドラー群
+# --------------------------------------------------
 @agent.on_message(model=DataQueryResponse)
 async def handle_13chain_response(ctx: Context, sender: str, msg: DataQueryResponse):
     if sender not in ALLOWED_CHILDREN: return
@@ -333,7 +363,8 @@ async def handle_tradfi_response(ctx: Context, sender: str, msg: TradFiDataQuery
     save_agent_cache(ctx, "subagent_tradfi", msg.dict())
     
     aggregated = {
-        "subagent_tradfi": get_agent_cache_with_fallback(ctx, "subagent_tradfi")
+        "subagent_tradfi": get_agent_cache_with_fallback(ctx, "subagent_tradfi"),
+        "subagent_vaultic_ai": get_agent_cache_with_fallback(ctx, "subagent_vaultic_ai")
     }
     check_market_alerts_and_notify(ctx, aggregated)
 
@@ -342,6 +373,12 @@ async def handle_real_estate_response(ctx: Context, sender: str, msg: RealEstate
     if sender not in ALLOWED_CHILDREN: return
     ctx.logger.info(f"✅ [Real Estate Agent] データ受信完了 ({sender})")
     save_agent_cache(ctx, "subagent_real_estate", msg.dict())
+
+@agent.on_message(model=VaulticDataQueryResponse)
+async def handle_vaultic_response(ctx: Context, sender: str, msg: VaulticDataQueryResponse):
+    if sender not in ALLOWED_CHILDREN: return
+    ctx.logger.info(f"✅ [Vaultic AI Agent] データ受信完了 ({sender})")
+    save_agent_cache(ctx, "subagent_vaultic_ai", msg.dict())
 
 # --------------------------------------------------
 # 💰 見積もり ＆ 厳格決済検証ハンドラー
@@ -392,6 +429,7 @@ async def handle_map_delivery(ctx: Context, sender: str, msg: CommitPayment):
         "subagent_metal": get_agent_cache_with_fallback(ctx, "subagent_metal"),
         "subagent_tradfi": get_agent_cache_with_fallback(ctx, "subagent_tradfi"),
         "subagent_real_estate": get_agent_cache_with_fallback(ctx, "subagent_real_estate"),
+        "subagent_vaultic_ai": get_agent_cache_with_fallback(ctx, "subagent_vaultic_ai"),
     }
 
     score, flight_signal, reasoning_summary = generate_dynamic_macro_reasoning(aggregated_data)
@@ -413,7 +451,7 @@ async def startup_handler(ctx: Context):
     ctx.logger.info("==================================================")
     ctx.logger.info(f"🌐 World Money Map Orchestrator Agent (Ver {CURRENT_VERSION})")
     ctx.logger.info(f"📍 Address: {agent.address}")
-    ctx.logger.info("🚨 Active Threshold Risk Alert Engine Initialized")
+    ctx.logger.info("🚨 6-Tier Active Risk Alert Engine Initialized")
     ctx.logger.info("==================================================")
 
 if __name__ == "__main__":
