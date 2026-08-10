@@ -114,11 +114,11 @@ Set the following environment variables in your local `.env` file or Agentverse 
 | `AGENT_SEED_PHRASE` | Mnemonic seed phrase restoring the Orchestrator wallet | **REQUIRED** |
 | `AGENTVERSE_KEY` | API Key for Agentverse communication platform | **REQUIRED** |
 | `DISCORD_WEBHOOK_URL` | Webhook URL for automated monitoring alerts | Optional |
-| `TARGET_13CHAIN_AGENT_ADDR` | Address of the 13-Chain Surveillance Sub-Agent | Optional |
-| `TARGET_AI_DEPIN_AGENT_ADDR` | Address of the AI & DePIN Intelligence Sub-Agent | Optional |
-| `TARGET_METAL_AGENT_ADDR` | Address of the Metal & Commodity Intelligence Sub-Agent | Optional |
-| `TARGET_TRADFI_STOCK_AGENT_ADDR` | Address of the Global Stock & TradFi Sub-Agent | Optional |
-| `TARGET_REAL_ESTATE_AGENT_ADDR` | Address of the Global Real Estate & RWA Sub-Agent | Optional |
+| `CHAIN_13_AGENT_ADDR` | Address of the 13-Chain Surveillance Sub-Agent | **REQUIRED** |
+| `AI_DEPIN_AGENT_ADDR` | Address of the AI & DePIN Intelligence Sub-Agent | **REQUIRED** |
+| `METAL_AGENT_ADDR` | Address of the Metal & Commodity Intelligence Sub-Agent | **REQUIRED** |
+| `GLOBAL_STOCK_AGENT_ADDR` | Address of the Global Stock & TradFi Sub-Agent | **REQUIRED** |
+| `REAL_ESTATE_AGENT_ADDR` | Address of the Global Real Estate & RWA Sub-Agent | **REQUIRED** |
 
 ## 🔒 Security & Privacy Guidelines
 
