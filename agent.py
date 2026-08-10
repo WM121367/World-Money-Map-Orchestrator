@@ -1,46 +1,34 @@
 # ==================================================
-# 🌐 World Money Map Orchestrator Agent (Ver 4.5.0 - Alert Engine)
+# 🌐 World Money Map Orchestrator Agent (Cloud Ver 4.5.0 - Alert Engine)
 # ==================================================
 import os
 import time
 import requests
 from uagents import Agent, Context, Model, Protocol
 
-CURRENT_VERSION = "4.5.0"
+CURRENT_VERSION = "4.5.0-cloud"
 
+# Secrets から各種設定を取得
 AGENT_SEED = os.getenv("AGENT_SEED")
-if not AGENT_SEED:
-    raise ValueError("エラー: 環境変数 'AGENT_SEED' が設定されていません。")
+WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+
+TARGET_AI_DEPIN_AGENT_ADDR = os.getenv("AI_DEPIN_AGENT_ADDR")
+TARGET_13CHAIN_AGENT_ADDR = os.getenv("CHAIN_13_AGENT_ADDR")
+TARGET_REAL_ESTATE_AGENT_ADDR = os.getenv("REAL_ESTATE_AGENT_ADDR")
+TARGET_TRADFI_STOCK_AGENT_ADDR = os.getenv("GLOBAL_STOCK_AGENT_ADDR")
+TARGET_METAL_AGENT_ADDR = os.getenv("METAL_AGENT_ADDR")
 
 agent = Agent(
-    name="world_money_map_orchestrator",
-    port=8000,
-    endpoint=["http://127.0.0.1:8000/submit"],
+    name="world-money-map-orchestrator"
 )
 
-TARGET_13CHAIN_AGENT_ADDR = os.getenv(
-    "TARGET_13CHAIN_AGENT_ADDR",
-    "agent1qdh6qpe2w8x5zqhmqmq3uzzvwjrfs2pgxyvhwnapgnfd50ztml3x2cgnhcr",
-)
-TARGET_AI_DEPIN_AGENT_ADDR = os.getenv(
-    "TARGET_AI_DEPIN_AGENT_ADDR",
-    "agent1qwwk4g5c609xvxjcywu2nshx7e0a77j3uwat9vmqy6rvsyw6mnzasgl62us",
-)
-TARGET_METAL_AGENT_ADDR = os.getenv(
-    "TARGET_METAL_AGENT_ADDR",
-    "agent1qg7jgujfh8nqd8gdnh6gkf4q2th7v8jzcrzjtg09m377gvkej57dyhfc4xv",
-)
-TARGET_TRADFI_STOCK_AGENT_ADDR = os.getenv(
-    "TARGET_TRADFI_STOCK_AGENT_ADDR",
-    "agent1qvz00khxag0pmdxhd2622ulr5msgq966sn7gfxr370kp4uv7z6rlzvhfupa",
-)
-TARGET_REAL_ESTATE_AGENT_ADDR = os.getenv(
-    "TARGET_REAL_ESTATE_AGENT_ADDR",
-    "agent1qwlseaupjyhl3r40k7jcasmpcf3wh5qhglcqzqywxwmlx9yxjjp457u07e3",
-)
-
-# 外部通知用 Webhook URL（環境変数から取得、未設定時はローカルログ出力）
-WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+ALLOWED_CHILDREN = {
+    TARGET_AI_DEPIN_AGENT_ADDR,
+    TARGET_13CHAIN_AGENT_ADDR,
+    TARGET_REAL_ESTATE_AGENT_ADDR,
+    TARGET_TRADFI_STOCK_AGENT_ADDR,
+    TARGET_METAL_AGENT_ADDR,
+}
 
 # --------------------------------------------------
 # 📊 データ構造定義
@@ -198,7 +186,6 @@ GLOBAL_STOCK_PYRAMID = {
 # 🚨 閾値監視 ＆ アラート通知ロジック (Alert Engine)
 # --------------------------------------------------
 def check_market_alerts_and_notify(ctx: Context, aggregated_data: dict):
-    """リスク指標の閾値チェックと警告発信"""
     tradfi = aggregated_data.get("subagent_tradfi", {}).get("data", {})
     vix = tradfi.get("volatility_sentiment", {}).get("VIX_EQUITY_VOLATILITY", 15.4)
     us10y_str = tradfi.get("bond_yields_rates", {}).get("US_10Y_YIELD", "4.18%")
@@ -217,8 +204,6 @@ def check_market_alerts_and_notify(ctx: Context, aggregated_data: dict):
     if alerts:
         alert_msg = "🚨 [WORLD MONEY MAP RISK ALERT]\n" + "\n".join(alerts)
         ctx.logger.warning(alert_msg)
-        
-        # Discord / External Webhook 送信処理
         if WEBHOOK_URL:
             try:
                 requests.post(WEBHOOK_URL, json={"content": alert_msg}, timeout=3)
@@ -307,38 +292,46 @@ def get_agent_cache_with_fallback(ctx: Context, key: str) -> dict:
 @agent.on_interval(period=120.0)
 async def query_sub_agents_task(ctx: Context):
     ctx.logger.info("📡 [Orchestrator] 5つの子Agentへ同期リクエストを送信中...")
-    await ctx.send(TARGET_13CHAIN_AGENT_ADDR, DataQueryRequest(chain_name="full_intelligence"))
-    await ctx.send(TARGET_AI_DEPIN_AGENT_ADDR, AIDataQueryRequest(category="ALL"))
-    await ctx.send(TARGET_METAL_AGENT_ADDR, MetalDataQueryRequest(symbol="ALL"))
-    await ctx.send(TARGET_TRADFI_STOCK_AGENT_ADDR, TradFiDataQueryRequest(scope="ALL_MARKETS"))
+    if TARGET_13CHAIN_AGENT_ADDR:
+        await ctx.send(TARGET_13CHAIN_AGENT_ADDR, DataQueryRequest(chain_name="full_intelligence"))
+    if TARGET_AI_DEPIN_AGENT_ADDR:
+        await ctx.send(TARGET_AI_DEPIN_AGENT_ADDR, AIDataQueryRequest(category="ALL"))
+    if TARGET_METAL_AGENT_ADDR:
+        await ctx.send(TARGET_METAL_AGENT_ADDR, MetalDataQueryRequest(symbol="ALL"))
+    if TARGET_TRADFI_STOCK_AGENT_ADDR:
+        await ctx.send(TARGET_TRADFI_STOCK_AGENT_ADDR, TradFiDataQueryRequest(scope="ALL_MARKETS"))
 
-    req_id = str(int(time.time()))
-    await ctx.send(
-        TARGET_REAL_ESTATE_AGENT_ADDR,
-        RealEstateRequest(request_id=req_id, timestamp=str(time.time())),
-    )
+    if TARGET_REAL_ESTATE_AGENT_ADDR:
+        req_id = str(int(time.time()))
+        await ctx.send(
+            TARGET_REAL_ESTATE_AGENT_ADDR,
+            RealEstateRequest(request_id=req_id, timestamp=str(time.time())),
+        )
 
 @agent.on_message(model=DataQueryResponse)
 async def handle_13chain_response(ctx: Context, sender: str, msg: DataQueryResponse):
+    if sender not in ALLOWED_CHILDREN: return
     ctx.logger.info(f"✅ [13-Chain Agent] データ受信完了 ({sender})")
     save_agent_cache(ctx, "subagent_13chain", msg.dict())
 
 @agent.on_message(model=AIDataQueryResponse)
 async def handle_ai_depin_response(ctx: Context, sender: str, msg: AIDataQueryResponse):
+    if sender not in ALLOWED_CHILDREN: return
     ctx.logger.info(f"✅ [AI & DePIN Agent] データ受信完了 ({sender})")
     save_agent_cache(ctx, "subagent_ai_depin", msg.dict())
 
 @agent.on_message(model=MetalDataQueryResponse)
 async def handle_metal_response(ctx: Context, sender: str, msg: MetalDataQueryResponse):
+    if sender not in ALLOWED_CHILDREN: return
     ctx.logger.info(f"✅ [Metal Agent] データ受信完了 ({sender})")
     save_agent_cache(ctx, "subagent_metal", msg.dict())
 
 @agent.on_message(model=TradFiDataQueryResponse)
 async def handle_tradfi_response(ctx: Context, sender: str, msg: TradFiDataQueryResponse):
+    if sender not in ALLOWED_CHILDREN: return
     ctx.logger.info(f"✅ [Global Stock Agent] データ受信完了 ({sender})")
     save_agent_cache(ctx, "subagent_tradfi", msg.dict())
     
-    # 全データ受領時にアラート閾値チェックを自動実行
     aggregated = {
         "subagent_tradfi": get_agent_cache_with_fallback(ctx, "subagent_tradfi")
     }
@@ -346,6 +339,7 @@ async def handle_tradfi_response(ctx: Context, sender: str, msg: TradFiDataQuery
 
 @agent.on_message(model=RealEstateResponse)
 async def handle_real_estate_response(ctx: Context, sender: str, msg: RealEstateResponse):
+    if sender not in ALLOWED_CHILDREN: return
     ctx.logger.info(f"✅ [Real Estate Agent] データ受信完了 ({sender})")
     save_agent_cache(ctx, "subagent_real_estate", msg.dict())
 
@@ -423,19 +417,4 @@ async def startup_handler(ctx: Context):
     ctx.logger.info("==================================================")
 
 if __name__ == "__main__":
-    import os
-    from uagents_core.utils.registration import (
-        register_chat_agent,
-        RegistrationRequestCredentials,
-    )
-
-    register_chat_agent(
-        "wmm_orchestrator_local",
-        "https://agentverse.ai",
-        active=True,
-        credentials=RegistrationRequestCredentials(
-            agentverse_api_key=os.environ["AGENTVERSE_KEY"],
-            agent_seed_phrase=os.environ["AGENT_SEED_PHRASE"],
-        ),
-    )
     agent.run()
