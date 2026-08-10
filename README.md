@@ -1,31 +1,32 @@
-# World Money Map Orchestrator Agent (Cloud Ver 4.5.0-Alert Engine)
+# 🌐 World Money Map Orchestrator Agent (Cloud Ver 4.6.0-Alert Engine)
 
-5-Tier Cross-Asset Intelligence Engine & Decentralized Autonomous Commerce Hub for Global Capital Flow Surveillance.
+6-Tier Cross-Asset Intelligence Engine & Decentralized Autonomous Commerce Hub for Global Capital Flow Surveillance.
 
-World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordinating AI agent of the World Money Map architecture. It autonomously queries, aggregates, and synthesizes intelligence from 5 specialized sub-agents spanning multi-chain L1/L2 networks, AI & DePIN infrastructure, tokenized commodities, TradFi global equities, and international real estate / RWA markets.
+World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordinating AI agent of the World Money Map architecture. It autonomously queries, aggregates, and synthesizes intelligence from 6 specialized sub-agents spanning multi-chain L1/L2 networks, AI & DePIN infrastructure, tokenized commodities, TradFi global equities, international real estate / RWA markets, and institutional vault solvency analytics.
 
 ---
 
 ## 🚀 Key Features
 
-* **5-Tier Specialized Sub-Agent Orchestration:**
+* **6-Tier Specialized Sub-Agent Orchestration:**
   * **13-Chain Agent:** On-chain multi-chain ledger liquidity & macro Web3 surveillance.
   * **AI & DePIN Agent:** Compute node metrics, GPU networks, and decentralized AI grid intelligence.
   * **Metal Agent:** Tokenized physical metals (PAXG/XAUT), COMEX inventories, and central bank gold absorption rates.
   * **Global Stock Agent:** TradFi indices, bond yields (US10Y), central bank rate trends, and sector rotation.
   * **Global Real Estate Agent:** RWA real estate tokens (Propy, RealT, Centrifuge), municipal Cap Rates, mortgage spreads, and capital flight risk matrix.
+  * **Vaultic AI Agent:** Institutional physical/tokenized vault solvency, Coinbase API live asset audits, and systemic collateral risk analytics.
 
 * **Autonomous Commerce & X402 Payment Settlement:**
   * Implements dynamic quote generation (`WorldMoneyMapQueryRequest` -> `RequestPayment`) and verifies payment commitments (`CommitPayment`) in native FET.
   * Delivers complete aggregated intelligence payloads upon on-chain payment confirmation.
 
 * **Stateful Intelligence Storage (`ctx.storage`):**
-  * Asynchronously polls sub-agents at 120-second intervals and persists real-time snapshots to local state storage.
+  * Asynchronously polls 6 sub-agents at 120-second intervals and persists real-time snapshots to local state storage.
   * Guarantees zero-latency delivery to paying clients by synthesizing pre-fetched state data.
 
-* **Global Stock & Capital Flow Pyramid Engine:**
-  * Contextualizes macro liquidity across the global wealth pyramid (Real Estate ~$670T, Debt ~$300T, Fiat ~$120T, Equities ~$115T, Commodities ~$18T-$33T, Crypto ~$2.16T).
-  * Computes unified `global_capital_flow_score` and capital flight signals across TradFi and Web3 assets.
+* **Active Threshold Risk Alert Engine:**
+  * Continuously evaluates VIX volatility (>25.0), US 10-Year Bond Yields (>4.50%), and Vaultic Systemic Stress Index (>0.70).
+  * Automatically dispatches rich alert notifications via Discord Webhook upon threshold breach.
 
 ---
 
@@ -34,16 +35,15 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
 ```text
                        ┌─────────────────────────────────────────┐
                        │  World Money Map Orchestrator Agent     │
-                       │     (Ver 4.1.0 / @prime-money-oracle)   │
+                       │     (Ver 4.6.0 / @prime-money-oracle)   │
                        └────────────────────┬────────────────────┘
                                             │
-         ┌──────────────────┬───────────────┼───────────────┬──────────────────┐
-         │                  │               │               │                  │
-┌────────▼─────────┐ ┌──────▼───────┐ ┌─────▼───────┐ ┌─────▼───────┐ ┌────────▼────────┐
-│  13-Chain Agent  │ │ AI & DePIN   │ │ Metal Agent │ │ Global Stock │ │ Global Real    │
-│  (Multi-Chain)   │ │ Agent        │ │ (Commodity) │ │ Agent        │ │ Estate Agent   │
-└──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘
-
+         ┌──────────────────┬───────────────┼───────────────┬──────────────────┬──────────────────┐
+         │                  │               │               │                  │                  │
+┌────────▼─────────┐ ┌──────▼───────┐ ┌─────▼───────┐ ┌─────▼───────┐ ┌────────▼────────┐ ┌────────▼────────┐
+│  13-Chain Agent  │ │ AI & DePIN   │ │ Metal Agent │ │ Global Stock │ │ Global Real    │ │  Vaultic AI    │
+│  (Multi-Chain)   │ │ Agent        │ │ (Commodity) │ │ Agent        │ │ Estate Agent   │ │  (@prime-trade)│
+└──────────────────┘ └──────────────┘ └─────────────┘ └──────────────┘ └────────────────┘ └────────────────┘
 ```
 🛠️ Data Query & Commerce Flow Example
 1. Payment Quote Request (WorldMoneyMapQueryRequest)
@@ -105,20 +105,20 @@ World Money Map Orchestrator Agent (`@prime-money-oracle`) is the master coordin
   "reasoning_summary": "Orchestrated 5-tier cross-asset synthesis completed."
 }
 ```
+
 ## ⚙️ Environment Configuration
 
 Set the following environment variables in your local `.env` file or Agentverse Secrets:
 
 | Variable Name | Description | Requirement |
 | :--- | :--- | :--- |
-| `AGENT_SEED_PHRASE` | Mnemonic seed phrase restoring the Orchestrator wallet | **REQUIRED** |
-| `AGENTVERSE_KEY` | API Key for Agentverse communication platform | **REQUIRED** |
 | `DISCORD_WEBHOOK_URL` | Webhook URL for automated monitoring alerts | Optional |
 | `CHAIN_13_AGENT_ADDR` | Address of the 13-Chain Surveillance Sub-Agent | **REQUIRED** |
 | `AI_DEPIN_AGENT_ADDR` | Address of the AI & DePIN Intelligence Sub-Agent | **REQUIRED** |
 | `METAL_AGENT_ADDR` | Address of the Metal & Commodity Intelligence Sub-Agent | **REQUIRED** |
 | `GLOBAL_STOCK_AGENT_ADDR` | Address of the Global Stock & TradFi Sub-Agent | **REQUIRED** |
 | `REAL_ESTATE_AGENT_ADDR` | Address of the Global Real Estate & RWA Sub-Agent | **REQUIRED** |
+| `VAULTIC_AI_AGENT_ADDR` | Address of the Vaultic AI Sub-Agent | **REQUIRED** |
 
 ## 🔒 Security & Privacy Guidelines
 
