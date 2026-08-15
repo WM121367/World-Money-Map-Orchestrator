@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 import time
+import requests
 from uagents import Agent, Context, Model, Protocol
 
 # ★ MeTTa の動的インポート
@@ -116,6 +117,22 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
 agent.include(chat_proto, publish_manifest=True)
 
 # --------------------------------------------------
+# 📢 Discord Webhook 設定 & 通知関数
+# --------------------------------------------------
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1534630822135726232/c22SOerNdSNvXK3j47np8UYEoSklEDhl9OXtfdPxCgXfOGeQeBs97YJCPhNkbrSN2vHU"
+
+def send_discord_notification(message: str):
+    if not DISCORD_WEBHOOK_URL or "YOUR_DISCORD" in DISCORD_WEBHOOK_URL:
+        return
+    payload = {"content": message}
+    try:
+        response = requests.post(DISCORD_WEBHOOK_URL, json=payload)
+        if response.status_code != 204:
+            print(f"⚠️ Discord通知エラー: {response.status_code}")
+    except Exception as e:
+        print(f"⚠️ Discord通知例外: {e}")
+
+# --------------------------------------------------
 # 📈 ガード付きペパートレード実行関数（連打・重複防止）
 # --------------------------------------------------
 async def execute_paper_trade_with_guard(
@@ -166,6 +183,16 @@ async def execute_paper_trade_with_guard(
             f"🚀 [PAPER BUY EXECUTE] {asset} | 数量: {buy_qty:.4f} @ ${current_price:,.2f} | "
             f"残金: ${new_usd:,.2f} | 確信度: {signal_confidence}"
         )
+        
+        # ▼ [修正ポイント3] ここでBUY成功時にDiscord通知を飛ばす
+        send_discord_notification(
+            f"📈 **[PAPER TRADE NOTIFICATION]**\n"
+            f"🟢 **[PAPER TRADE BUY EXECUTED]**\n"
+            f"• 資産: {asset}\n"
+            f"• 数量: {buy_qty:.4f}\n"
+            f"• 価格: ${current_price:,.2f}\n"
+            f"• 残り現金: ${new_usd:,.2f}"
+        )
         return True
 
     elif action == "EXECUTE_PAPER_SELL":
@@ -185,6 +212,15 @@ async def execute_paper_trade_with_guard(
         ctx.logger.info(
             f"🎯 [PAPER SELL EXECUTE] {asset} | 数量: {holding_qty:.4f} @ ${current_price:,.2f} | "
             f"損益(PnL): ${pnl:+,.2f} | 新残高: ${new_usd:,.2f}"
+        )
+        
+        # ▼ [修正ポイント4] ここでSELL成功時にDiscord通知を飛ばす
+        send_discord_notification(
+            f"📉 **[PAPER TRADE NOTIFICATION]**\n"
+            f"🔴 **[PAPER SELL EXECUTED]**\n"
+            f"• 資産: {asset}\n"
+            f"• 損益(PnL): ${pnl:+,.2f}\n"
+            f"• 新残高: ${new_usd:,.2f}"
         )
         return True
 
