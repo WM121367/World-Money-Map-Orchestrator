@@ -18,14 +18,24 @@ from hyperon import MeTTa
 # --------------------------------------------------
 # ⚙️ Secret 設定 & Agent 初期化
 # --------------------------------------------------
-TRADE_COOLDOWN_SECONDS = 300  # クールダウン時間 (5分)
-
 AGENT_SEED = os.getenv("AGENT_SEED")
 
 agent = Agent(
     name="world-money-map-orchestrator",
     seed=AGENT_SEED or "wmmo_orchestrator_production_seed_2026",
 )
+
+# --------------------------------------------------
+# 📊 データ構造定義 (Models)
+# --------------------------------------------------
+class ChatMessage(Model):
+    message: str
+
+class TradeSignal(Model):
+    action: str
+    asset: str
+    price: float
+    confidence: float
 
 # --------------------------------------------------
 # 🛡️ MeTTa によるマクロ資金流動 & トレードシグナル検証エンジン
@@ -78,9 +88,6 @@ def evaluate_wmmo_trade_logic(
 # --------------------------------------------------
 # 💬 Orchestrator Chat Protocol
 # --------------------------------------------------
-class ChatMessage(Model):
-    message: str
-
 chat_proto = Protocol(name="Agent Chat Protocol", version="0.2.0")
 
 @chat_proto.on_message(model=ChatMessage, replies=ChatMessage)
@@ -88,16 +95,7 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
     user_query = msg.message.lower().strip()
     ctx.logger.info(f"💬 [ASI One Chat] 受信 from {sender}: {msg.message}")
 
-    virtual_usd = ctx.storage.get("virtual_usd_balance") or 100000.0
-    holding_paxg = ctx.storage.get("holding_qty_PAXG") or 0.0
-
-    if any(k in user_query for k in ["portfolio", "balance", "残高", "資産"]):
-        reply_text = (
-            f"🌐 **World Money Map Virtual Portfolio**\n"
-            f"・現金残高: **${virtual_usd:,.2f} USD**\n"
-            f"・PAXG 保有量: **{holding_paxg:.4f} oz**"
-        )
-    elif any(k in user_query for k in ["signal", "flight", "metta", "シグナル"]):
+    if any(k in user_query for k in ["signal", "flight", "metta", "シグナル"]):
         decision = evaluate_wmmo_trade_logic(4.66, 22.4, 0.38, "CRITICAL_SUPPLY_CRUNCH")
         reply_text = (
             f"🛡️ **MeTTa Capital Flight Analysis**\n"
@@ -108,7 +106,7 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
         reply_text = (
             f"🌐 **World Money Map Orchestrator Agent (Ver 5.0.0)**\n"
             f"6系統サブエージェント & MeTTa エンジン監視中。\n"
-            f"キーワード: `portfolio`, `signal`"
+            f"キーワード: `signal`"
         )
 
     await ctx.send(sender, ChatMessage(message=reply_text))
@@ -116,7 +114,7 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
 agent.include(chat_proto, publish_manifest=True)
 
 # --------------------------------------------------
-# 📢 Discord Webhook 通知関数（関数内で最新のSecretを取得）
+# 📢 Discord Webhook 通知関数 (マクロアラート用)
 # --------------------------------------------------
 def send_discord_notification(ctx: Context, message: str):
     webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
@@ -129,110 +127,12 @@ def send_discord_notification(ctx: Context, message: str):
         "username": "World Money Map Orchestrator"
     }
     try:
-        response = requests.post(webhook_url, json=payload, timeout=5)
-        if response.status_code in [200, 204]:
-            ctx.logger.info("✅ Discordへ通知を正常に送信しました！")
-        else:
-            ctx.logger.error(f"⚠️ Discord通知エラー: ステータスコード {response.status_code}, 応答: {response.text}")
+        requests.post(webhook_url, json=payload, timeout=5)
     except Exception as e:
         ctx.logger.error(f"⚠️ Discord通知例外発生: {e}")
 
 # --------------------------------------------------
-# 📈 ガード付きペパートレード実行関数
-# --------------------------------------------------
-async def execute_paper_trade_with_guard(
-    ctx: Context, 
-    action: str,          
-    asset: str,           
-    current_price: float, 
-    signal_confidence: float
-) -> bool:
-    now = time.time()
-    
-    virtual_usd = ctx.storage.get("virtual_usd_balance")
-    if virtual_usd is None:
-        virtual_usd = 100000.0
-        ctx.storage.set("virtual_usd_balance", virtual_usd)
-
-    holding_qty = ctx.storage.get(f"holding_qty_{asset}") or 0.0
-    last_trade_time = ctx.storage.get(f"last_trade_time_{asset}") or 0.0
-
-    elapsed = now - last_trade_time
-    if elapsed < TRADE_COOLDOWN_SECONDS:
-        remaining = int(TRADE_COOLDOWN_SECONDS - elapsed)
-        ctx.logger.info(
-            f"⏳ [連打防止] {asset} 前回の注文から {int(elapsed)}秒しか経過していません。"
-            f"発注をブロックしました。(待機残り: {remaining}秒)"
-        )
-        return False
-
-    if action == "EXECUTE_PAPER_BUY":
-        if holding_qty > 0:
-            ctx.logger.info(f"⚠️ [重複防止] {asset} は既に保有中 ({holding_qty:.4f} 単位) です。追加BUYをスキップします。")
-            return False
-        
-        trade_amount_usd = 10000.0
-        if virtual_usd < trade_amount_usd:
-            ctx.logger.warning(f"❌ [資金不足] 現金残高 (${virtual_usd:,.2f}) が不足しています。")
-            return False
-
-        buy_qty = trade_amount_usd / current_price
-        new_usd = virtual_usd - trade_amount_usd
-        
-        ctx.storage.set("virtual_usd_balance", new_usd)
-        ctx.storage.set(f"holding_qty_{asset}", buy_qty)
-        ctx.storage.set(f"buy_price_{asset}", current_price)
-        ctx.storage.set(f"last_trade_time_{asset}", now)
-
-        ctx.logger.info(
-            f"🚀 [PAPER BUY EXECUTE] {asset} | 数量: {buy_qty:.4f} @ ${current_price:,.2f} | "
-            f"残金: ${new_usd:,.2f} | 確信度: {signal_confidence}"
-        )
-        
-        send_discord_notification(
-            ctx,
-            f"📈 **[PAPER TRADE NOTIFICATION]**\n"
-            f"🟢 **[PAPER TRADE BUY EXECUTED]**\n"
-            f"• 資産: {asset}\n"
-            f"• 数量: {buy_qty:.4f}\n"
-            f"• 価格: ${current_price:,.2f}\n"
-            f"• 残り現金: ${new_usd:,.2f}"
-        )
-        return True
-
-    elif action == "EXECUTE_PAPER_SELL":
-        if holding_qty <= 0:
-            ctx.logger.info(f"⚠️ [重複防止] {asset} の保有がありません。SELLをスキップします。")
-            return False
-
-        buy_price = ctx.storage.get(f"buy_price_{asset}") or current_price
-        sell_val = holding_qty * current_price
-        pnl = sell_val - (holding_qty * buy_price)
-        new_usd = virtual_usd + sell_val
-
-        ctx.storage.set("virtual_usd_balance", new_usd)
-        ctx.storage.set(f"holding_qty_{asset}", 0.0)
-        ctx.storage.set(f"last_trade_time_{asset}", now)
-
-        ctx.logger.info(
-            f"🎯 [PAPER SELL EXECUTE] {asset} | 数量: {holding_qty:.4f} @ ${current_price:,.2f} | "
-            f"損益(PnL): ${pnl:+,.2f} | 新残高: ${new_usd:,.2f}"
-        )
-        
-        send_discord_notification(
-            ctx,
-            f"📉 **[PAPER TRADE NOTIFICATION]**\n"
-            f"🔴 **[PAPER SELL EXECUTED]**\n"
-            f"• 資産: {asset}\n"
-            f"• 損益(PnL): ${pnl:+,.2f}\n"
-            f"• 新残高: ${new_usd:,.2f}"
-        )
-        return True
-
-    return False
-
-# --------------------------------------------------
-# WMMOの定期タスク（120秒ごとのサブエージェントデータ集約）
+# WMMOの定期タスク（120秒ごとのマクロ判定 & Vaultic AIへの指令送信）
 # --------------------------------------------------
 @agent.on_interval(period=120.0)
 async def process_orchestration_cycle(ctx: Context):
@@ -242,39 +142,37 @@ async def process_orchestration_cycle(ctx: Context):
     gold_supply = "CRITICAL_SUPPLY_CRUNCH" 
 
     decision = evaluate_wmmo_trade_logic(us10y, vix, vault_stress, gold_supply)
-
     ctx.logger.info(f"🛡️ 【MeTTa マクロ判定】 Flight: {decision['flight_signal']} | Action: {decision['trade_action']}")
 
-    paxg_spot_price = 2450.00 
+    vaultic_addr = os.getenv("VAULTIC_AI_AGENT_ADDR")
+    if not vaultic_addr:
+        ctx.logger.warning("⚠️ VAULTIC_AI_AGENT_ADDR が設定されていません。")
+        return
 
-    if decision["trade_action"] == "EXECUTE_PAPER_BUY_GOLD_AI_RWA":
-        await execute_paper_trade_with_guard(
-            ctx=ctx,
-            action="EXECUTE_PAPER_BUY",
-            asset="PAXG",
-            current_price=paxg_spot_price,
-            signal_confidence=decision["confidence_score"]
+    # 判定結果に応じたトレード指令を Vaultic AI へ送信
+    if "EXECUTE_PAPER_BUY" in decision["trade_action"]:
+        await ctx.send(
+            vaultic_addr, 
+            TradeSignal(action="BUY", asset="PAXG", price=2450.00, confidence=decision["confidence_score"])
         )
-    elif decision["trade_action"] == "EXECUTE_PAPER_SELL_RISK_OFF":
-        await execute_paper_trade_with_guard(
-            ctx=ctx,
-            action="EXECUTE_PAPER_SELL",
-            asset="PAXG",
-            current_price=paxg_spot_price,
-            signal_confidence=decision["confidence_score"]
-        )
+        ctx.logger.info("🚀 [WMMO] Vaultic AI へ BUY 命令を送信しました。")
+        send_discord_notification(ctx, f"🌐 **[WMMO MACRO ALERT]**\n🟢 資金逃避シグナル検知。Vaultic AI へ **BUY (PAXG)** 命令を送信しました。")
 
-# 起動時のハンドラ（テスト用にリセット）
+    elif "EXECUTE_PAPER_SELL" in decision["trade_action"]:
+        await ctx.send(
+            vaultic_addr, 
+            TradeSignal(action="SELL", asset="PAXG", price=2450.00, confidence=decision["confidence_score"])
+        )
+        ctx.logger.info("📉 [WMMO] Vaultic AI へ SELL 命令を送信しました。")
+        send_discord_notification(ctx, f"🌐 **[WMMO MACRO ALERT]**\n🔴 リスクオフシグナル検知。Vaultic AI へ **SELL (PAXG)** 命令を送信しました。")
+
+# 起動時のハンドラ
 @agent.on_event("startup")
 async def startup_handler(ctx: Context):
-    ctx.storage.set("holding_qty_PAXG", 0.0)
-    ctx.storage.set("last_trade_time_PAXG", 0.0)
-    ctx.storage.set("virtual_usd_balance", 100000.0)
-    ctx.logger.info("🛠️ テスト用にポートフォリオとガードをリセットしました")
-
     url = os.getenv("DISCORD_WEBHOOK_URL")
-    ctx.logger.info(f"🚀 起動確認 | Webhook URL設定: {'あり' if url else 'なし'}")
-    ctx.logger.info(f"🚀 アドレス: {agent.address}")
+    addr = os.getenv("VAULTIC_AI_AGENT_ADDR")
+    ctx.logger.info(f"🚀 起動確認 | Webhook: {'あり' if url else 'なし'} | Vaultic連携先: {'設定済み' if addr else '未設定'}")
+    ctx.logger.info(f"🚀 WMMO アドレス: {agent.address}")
 
 if __name__ == "__main__":
     agent.run()
