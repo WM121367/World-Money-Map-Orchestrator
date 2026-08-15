@@ -1,3 +1,10 @@
+import os
+import sys
+import subprocess
+import time
+import requests
+from uagents import Agent, Context, Model, Protocol
+
 # --------------------------------------------------
 # 📢 Discord Webhook 設定 & 通知関数（デバッグ強化版）
 # --------------------------------------------------
