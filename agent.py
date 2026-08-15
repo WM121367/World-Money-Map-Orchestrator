@@ -116,18 +116,20 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
 agent.include(chat_proto, publish_manifest=True)
 
 # --------------------------------------------------
-# 📢 Discord Webhook 設定 & 通知関数
+# 📢 Discord Webhook 通知関数（関数内で最新のSecretを取得）
 # --------------------------------------------------
-DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-
 def send_discord_notification(ctx: Context, message: str):
-    if not DISCORD_WEBHOOK_URL:
-        ctx.logger.warning("⚠️ Discord Webhook URL が設定されていません。")
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
+    if not webhook_url or "discord.com" not in webhook_url:
+        ctx.logger.warning("⚠️ 有効な Discord Webhook URL が設定されていません。")
         return
     
-    payload = {"content": message}
+    payload = {
+        "content": message,
+        "username": "World Money Map Orchestrator"
+    }
     try:
-        response = requests.post(DISCORD_WEBHOOK_URL, json=payload)
+        response = requests.post(webhook_url, json=payload, timeout=5)
         if response.status_code in [200, 204]:
             ctx.logger.info("✅ Discordへ通知を正常に送信しました！")
         else:
@@ -262,10 +264,9 @@ async def process_orchestration_cycle(ctx: Context):
             signal_confidence=decision["confidence_score"]
         )
 
-# 起動時のハンドラ（初回のみ強制リセットしてテストしやすくしています）
+# 起動時のハンドラ（テスト用にリセット）
 @agent.on_event("startup")
 async def startup_handler(ctx: Context):
-    # テストのため一度保有量とタイマーをリセットして注文が通るようにします
     ctx.storage.set("holding_qty_PAXG", 0.0)
     ctx.storage.set("last_trade_time_PAXG", 0.0)
     ctx.storage.set("virtual_usd_balance", 100000.0)
