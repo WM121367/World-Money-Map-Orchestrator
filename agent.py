@@ -262,7 +262,6 @@ async def process_orchestration_cycle(ctx: Context):
 
 @agent.on_event("startup")
 async def startup_handler(ctx: Context):
-    ctx.logger.info(f"🚀 World Money Map Orchestrator 本番稼働! | Address: {agent.address}")
-
-if __name__ == "__main__":
-    agent.run()
+    url = os.getenv("DISCORD_WEBHOOK_URL")
+    ctx.logger.info(f"🚀 起動確認 | Webhook URL設定: {'あり' if url else 'なし'}")
+    ctx.logger.info(f"🚀 アドレス: {agent.address}")
