@@ -9,15 +9,11 @@ from uagents import Agent, Context, Model, Protocol
 try:
     import hyperon
 except ImportError:
-    print("hyperon が見つかりません。動的にインストールを開始します...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "hyperon", "uagents"])
     import hyperon
 
 from hyperon import MeTTa
 
-# --------------------------------------------------
-# ⚙️ Secret 設定 & Agent 初期化
-# --------------------------------------------------
 AGENT_SEED = os.getenv("AGENT_SEED")
 
 agent = Agent(
@@ -38,24 +34,16 @@ class TradeSignal(Model):
     confidence: float
 
 # --------------------------------------------------
-# 🛡️ MeTTa によるマクロ資金流動 & ナラティブ検証エンジン
+# 🛡️ MeTTa マクロ判定エンジン
 # --------------------------------------------------
-def evaluate_wmmo_trade_logic(
-    us10y_yield: float,
-    vix: float,
-    vault_stress: float,
-    cb_gold_absorption: str
-) -> dict:
+def evaluate_wmmo_trade_logic(us10y_yield: float, vix: float, vault_stress: float, cb_gold_absorption: str) -> dict:
     metta = MeTTa()
-
     metta_script = f"""
-    ;; 1. 資金逃避 (Capital Flight) 判定ルール
     (= (detect-capital-flight)
        (if (and (> {us10y_yield} 4.50) (> {vix} 20.0))
            "FLIGHT_DETECTED_HIGH_URGENCY"
            "STABLE_FLOW"))
 
-    ;; 2. ペパートレード実行ルール (BUY / SELL / HOLD)
     (= (evaluate-paper-trade)
        (if (> {vault_stress} 0.60)
            "EXECUTE_PAPER_SELL_RISK_OFF"
@@ -64,17 +52,14 @@ def evaluate_wmmo_trade_logic(
                "EXECUTE_PAPER_BUY_GOLD_AI_RWA"
                "HOLD_POSITION")))
 
-    ;; 評価実行
     !(detect-capital-flight)
     !(evaluate-paper-trade)
     """
-    
     try:
         results = metta.run(metta_script)
         flight_result = str(results[0][0]) if len(results) > 0 and len(results[0]) > 0 else "STABLE_FLOW"
         trade_result = str(results[1][0]) if len(results) > 1 and len(results[1]) > 0 else "HOLD_POSITION"
-    except Exception as e:
-        print(f"⚠️ MeTTa 評価例外: {e}")
+    except Exception:
         flight_result = "STABLE_FLOW"
         trade_result = "HOLD_POSITION"
 
@@ -86,35 +71,26 @@ def evaluate_wmmo_trade_logic(
     }
 
 # --------------------------------------------------
-# 💬 Orchestrator Chat Protocol (ASI One 連携)
+# 💬 標準かつシンプルなチャットプロトコル
 # --------------------------------------------------
 chat_proto = Protocol(name="Agent Chat Protocol", version="0.2.0")
 
 @chat_proto.on_message(model=ChatMessage, replies=ChatMessage)
 async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
     user_query = msg.message.lower().strip()
-    ctx.logger.info(f"💬 [ASI One Chat] 受信 from {sender}: {msg.message}")
+    ctx.logger.info(f"💬 [Chat受信] from {sender}: {msg.message}")
 
     if any(k in user_query for k in ["signal", "flight", "metta", "シグナル"]):
         decision = evaluate_wmmo_trade_logic(4.66, 22.4, 0.38, "CRITICAL_SUPPLY_CRUNCH")
         reply_text = (
-            f"🛡️ **MeTTa Capital Flight & Narrative Analysis**\n"
+            f"🛡️ **MeTTa Capital Flight Analysis**\n"
             f"・資金逃避ステータス: **{decision['flight_signal']}**\n"
-            f"・推奨アクション: **{decision['trade_action']}**\n"
-            f"・信頼度スコア: **{decision['confidence_score']}**"
-        )
-    elif any(k in user_query for k in ["xrp", "btc", "youtube", "narrative"]):
-        reply_text = (
-            f"📊 **WMMO Narrative vs On-Chain Reality**\n"
-            f"・検証対象: YouTube/X ハイプ言説 (XRPインフラ説 vs BTC流動性の罠)\n"
-            f"・データ判定: 感情論を排除し、Farside ETFフローおよびRWAミント動向と照合中。\n"
-            f"・結論: 現状のデータは実需・金利スプレッドに基づく硬い資産（PAXG/RWA）へのシフトを支持。"
+            f"・推奨アクション: **{decision['trade_action']}**"
         )
     else:
         reply_text = (
-            f"🌐 **World Money Map Orchestrator Agent (Ver 5.1.0)**\n"
-            f"6系統サブエージェント & MeTTa エンジン稼働中。\n"
-            f"キーワード: `signal`, `xrp`, `btc`"
+            f"🌐 **World Money Map Orchestrator Agent (Ver 5.3.0)**\n"
+            f"6系統サブエージェント & MeTTa エンジン監視中。"
         )
 
     await ctx.send(sender, ChatMessage(message=reply_text))
@@ -122,20 +98,7 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
 agent.include(chat_proto, publish_manifest=True)
 
 # --------------------------------------------------
-# 📢 Discord Webhook 通知関数
-# --------------------------------------------------
-def send_discord_notification(ctx: Context, message: str):
-    webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
-    if not webhook_url or "discord.com" not in webhook_url:
-        return
-    payload = {"content": message, "username": "World Money Map Orchestrator"}
-    try:
-        requests.post(webhook_url, json=payload, timeout=5)
-    except Exception as e:
-        ctx.logger.error(f"⚠️ Discord通知例外: {e}")
-
-# --------------------------------------------------
-# 定期マクロ判定タスク (120秒ごと)
+# 定期マクロ判定 & Vaultic AIへの指令送信タスク
 # --------------------------------------------------
 @agent.on_interval(period=120.0)
 async def process_orchestration_cycle(ctx: Context):
@@ -156,12 +119,6 @@ async def process_orchestration_cycle(ctx: Context):
             vaultic_addr, 
             TradeSignal(action="BUY", asset="PAXG", price=2450.00, confidence=decision["confidence_score"])
         )
-        send_discord_notification(ctx, f"🌐 **[WMMO MACRO ALERT]**\n🟢 資金逃避シグナル検知。Vaultic AI へ **BUY (PAXG)** 命令を送信しました。")
+        ctx.logger.info("🚀 [WMMO] Vaultic AI へ BUY 命令を送信しました。")
 
-# 起動時のハンドラ
-@agent.on_event("startup")
-async def startup_handler(ctx: Context):
-    ctx.logger.info(f"🚀 WMMO アドレス: {agent.address}")
-
-if __name__ == "__main__":
-    agent.run()
+# ※ Agentverse上では agent.run() は不要のため削除
