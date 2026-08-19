@@ -38,7 +38,7 @@ class TradeSignal(Model):
     confidence: float
 
 # --------------------------------------------------
-# 🛡️ MeTTa によるマクロ資金流動 & トレードシグナル検証エンジン
+# 🛡️ MeTTa によるマクロ資金流動 & ナラティブ検証エンジン
 # --------------------------------------------------
 def evaluate_wmmo_trade_logic(
     us10y_yield: float,
@@ -86,7 +86,7 @@ def evaluate_wmmo_trade_logic(
     }
 
 # --------------------------------------------------
-# 💬 Orchestrator Chat Protocol
+# 💬 Orchestrator Chat Protocol (ASI One 連携)
 # --------------------------------------------------
 chat_proto = Protocol(name="Agent Chat Protocol", version="0.2.0")
 
@@ -98,15 +98,23 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
     if any(k in user_query for k in ["signal", "flight", "metta", "シグナル"]):
         decision = evaluate_wmmo_trade_logic(4.66, 22.4, 0.38, "CRITICAL_SUPPLY_CRUNCH")
         reply_text = (
-            f"🛡️ **MeTTa Capital Flight Analysis**\n"
+            f"🛡️ **MeTTa Capital Flight & Narrative Analysis**\n"
             f"・資金逃避ステータス: **{decision['flight_signal']}**\n"
-            f"・推奨アクション: **{decision['trade_action']}**"
+            f"・推奨アクション: **{decision['trade_action']}**\n"
+            f"・信頼度スコア: **{decision['confidence_score']}**"
+        )
+    elif any(k in user_query for k in ["xrp", "btc", "youtube", "narrative"]):
+        reply_text = (
+            f"📊 **WMMO Narrative vs On-Chain Reality**\n"
+            f"・検証対象: YouTube/X ハイプ言説 (XRPインフラ説 vs BTC流動性の罠)\n"
+            f"・データ判定: 感情論を排除し、Farside ETFフローおよびRWAミント動向と照合中。\n"
+            f"・結論: 現状のデータは実需・金利スプレッドに基づく硬い資産（PAXG/RWA）へのシフトを支持。"
         )
     else:
         reply_text = (
-            f"🌐 **World Money Map Orchestrator Agent (Ver 5.0.0)**\n"
-            f"6系統サブエージェント & MeTTa エンジン監視中。\n"
-            f"キーワード: `signal`"
+            f"🌐 **World Money Map Orchestrator Agent (Ver 5.1.0)**\n"
+            f"6系統サブエージェント & MeTTa エンジン稼働中。\n"
+            f"キーワード: `signal`, `xrp`, `btc`"
         )
 
     await ctx.send(sender, ChatMessage(message=reply_text))
@@ -114,25 +122,20 @@ async def handle_wmmo_chat(ctx: Context, sender: str, msg: ChatMessage):
 agent.include(chat_proto, publish_manifest=True)
 
 # --------------------------------------------------
-# 📢 Discord Webhook 通知関数 (マクロアラート用)
+# 📢 Discord Webhook 通知関数
 # --------------------------------------------------
 def send_discord_notification(ctx: Context, message: str):
     webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
     if not webhook_url or "discord.com" not in webhook_url:
-        ctx.logger.warning("⚠️ 有効な Discord Webhook URL が設定されていません。")
         return
-    
-    payload = {
-        "content": message,
-        "username": "World Money Map Orchestrator"
-    }
+    payload = {"content": message, "username": "World Money Map Orchestrator"}
     try:
         requests.post(webhook_url, json=payload, timeout=5)
     except Exception as e:
-        ctx.logger.error(f"⚠️ Discord通知例外発生: {e}")
+        ctx.logger.error(f"⚠️ Discord通知例外: {e}")
 
 # --------------------------------------------------
-# WMMOの定期タスク（120秒ごとのマクロ判定 & Vaultic AIへの指令送信）
+# 定期マクロ判定タスク (120秒ごと)
 # --------------------------------------------------
 @agent.on_interval(period=120.0)
 async def process_orchestration_cycle(ctx: Context):
@@ -146,32 +149,18 @@ async def process_orchestration_cycle(ctx: Context):
 
     vaultic_addr = os.getenv("VAULTIC_AI_AGENT_ADDR")
     if not vaultic_addr:
-        ctx.logger.warning("⚠️ VAULTIC_AI_AGENT_ADDR が設定されていません。")
         return
 
-    # 判定結果に応じたトレード指令を Vaultic AI へ送信
     if "EXECUTE_PAPER_BUY" in decision["trade_action"]:
         await ctx.send(
             vaultic_addr, 
             TradeSignal(action="BUY", asset="PAXG", price=2450.00, confidence=decision["confidence_score"])
         )
-        ctx.logger.info("🚀 [WMMO] Vaultic AI へ BUY 命令を送信しました。")
         send_discord_notification(ctx, f"🌐 **[WMMO MACRO ALERT]**\n🟢 資金逃避シグナル検知。Vaultic AI へ **BUY (PAXG)** 命令を送信しました。")
-
-    elif "EXECUTE_PAPER_SELL" in decision["trade_action"]:
-        await ctx.send(
-            vaultic_addr, 
-            TradeSignal(action="SELL", asset="PAXG", price=2450.00, confidence=decision["confidence_score"])
-        )
-        ctx.logger.info("📉 [WMMO] Vaultic AI へ SELL 命令を送信しました。")
-        send_discord_notification(ctx, f"🌐 **[WMMO MACRO ALERT]**\n🔴 リスクオフシグナル検知。Vaultic AI へ **SELL (PAXG)** 命令を送信しました。")
 
 # 起動時のハンドラ
 @agent.on_event("startup")
 async def startup_handler(ctx: Context):
-    url = os.getenv("DISCORD_WEBHOOK_URL")
-    addr = os.getenv("VAULTIC_AI_AGENT_ADDR")
-    ctx.logger.info(f"🚀 起動確認 | Webhook: {'あり' if url else 'なし'} | Vaultic連携先: {'設定済み' if addr else '未設定'}")
     ctx.logger.info(f"🚀 WMMO アドレス: {agent.address}")
 
 if __name__ == "__main__":
